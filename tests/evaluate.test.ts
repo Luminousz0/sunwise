@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeSolarCurve } from '../src/lib/evaluate';
+import { computeSolarCurve, computeBestWindows } from '../src/lib/evaluate';
 import type { HourlyValue } from '../src/types/solar';
 import type { HourlyCloudCover } from '../src/types/weather';
 
@@ -77,5 +77,93 @@ describe('computeSolarCurve', () => {
     }));
     const { today } = computeSolarCurve(typical, cover);
     today.forEach(({ hour }, i) => expect(hour).toBe(i));
+  });
+});
+
+// ── helpers for computeBestWindows tests ─────────────────────────────────────
+
+const flatPrices: HourlyValue[] = Array.from({ length: 24 }, (_, hour) => ({
+  hour,
+  value: 100, // flat price — no price signal
+}));
+
+const flatCarbon: HourlyValue[] = Array.from({ length: 24 }, (_, hour) => ({
+  hour,
+  value: 300, // flat carbon — no carbon signal
+}));
+
+// Solar peaks sharply at hours 11–13
+const peakSolar: HourlyValue[] = Array.from({ length: 24 }, (_, hour) => ({
+  hour,
+  value: hour >= 11 && hour <= 13 ? 400 : 0,
+}));
+
+describe('computeBestWindows', () => {
+  it('returns 24 scores', () => {
+    const { scores } = computeBestWindows(typical, flatPrices, flatCarbon, 1);
+    expect(scores).toHaveLength(24);
+  });
+
+  it('scores are between 0 and 1', () => {
+    const { scores } = computeBestWindows(typical, flatPrices, flatCarbon, 1);
+    scores.forEach(({ score }) => {
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(1);
+    });
+  });
+
+  it('returns up to 3 windows', () => {
+    const { windows } = computeBestWindows(typical, flatPrices, flatCarbon, 2);
+    expect(windows.length).toBeLessThanOrEqual(3);
+    expect(windows.length).toBeGreaterThan(0);
+  });
+
+  it('windows do not overlap', () => {
+    const { windows } = computeBestWindows(typical, flatPrices, flatCarbon, 2);
+    const usedHours = new Set<number>();
+    for (const w of windows) {
+      for (let h = w.startHour; h < w.endHour; h++) {
+        expect(usedHours.has(h)).toBe(false);
+        usedHours.add(h);
+      }
+    }
+  });
+
+  it('windows are sorted best-first', () => {
+    const { windows } = computeBestWindows(typical, flatPrices, flatCarbon, 2);
+    for (let i = 1; i < windows.length; i++) {
+      expect(windows[i].avgScore).toBeLessThanOrEqual(windows[i - 1].avgScore);
+    }
+  });
+
+  it('best window covers the solar peak when solar dominates', () => {
+    // peakSolar is only nonzero at hours 11-13; flat price/carbon → solar wins
+    const { windows } = computeBestWindows(peakSolar, flatPrices, flatCarbon, 1);
+    const bestStart = windows[0].startHour;
+    expect(bestStart).toBeGreaterThanOrEqual(11);
+    expect(bestStart).toBeLessThanOrEqual(13);
+  });
+
+  it('all-zero solar still returns valid scores', () => {
+    const noSolar: HourlyValue[] = Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      value: 0,
+    }));
+    const { scores, windows } = computeBestWindows(noSolar, flatPrices, flatCarbon, 1);
+    expect(scores).toHaveLength(24);
+    expect(windows.length).toBeGreaterThan(0);
+  });
+
+  it('duration > 24 returns empty windows', () => {
+    const { windows } = computeBestWindows(typical, flatPrices, flatCarbon, 25);
+    expect(windows).toHaveLength(0);
+  });
+
+  it('window boundaries stay within 0–23', () => {
+    const { windows } = computeBestWindows(typical, flatPrices, flatCarbon, 4);
+    windows.forEach(({ startHour, endHour }) => {
+      expect(startHour).toBeGreaterThanOrEqual(0);
+      expect(endHour).toBeLessThanOrEqual(24);
+    });
   });
 });

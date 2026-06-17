@@ -1,6 +1,107 @@
 import type { HourlyValue } from '@/types/solar';
 import type { HourlyCloudCover } from '@/types/weather';
 
+// ── Scoring weights ───────────────────────────────────────────────────────────
+const SOLAR_WEIGHT = 0.5;  // solar availability drives self-consumption
+const PRICE_WEIGHT = 0.3;  // high grid price = more savings from own power
+const CARBON_WEIGHT = 0.2; // high grid carbon = cleaner to use solar
+
+// Normalize an array to [0, 1]. All-zero → 0 (no signal). All-equal non-zero → 0.5.
+function normalize(values: number[]): number[] {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min;
+  if (range === 0) return values.map(() => (max === 0 ? 0 : 0.5));
+  return values.map((v) => (v - min) / range);
+}
+
+export interface HourScore {
+  hour: number;
+  score: number;         // 0–1 composite self-consumption score
+  solarWh: number;       // solar production this hour (Wh)
+  priceEurMWh: number;   // day-ahead spot price
+  carbonGco2kWh: number; // grid carbon intensity
+}
+
+export interface BestWindow {
+  startHour: number; // inclusive
+  endHour: number;   // exclusive (endHour - startHour = window size)
+  avgScore: number;  // 0–1
+  totalSolarWh: number;
+}
+
+export interface BestWindowsResult {
+  scores: HourScore[];
+  windows: BestWindow[]; // up to 3 non-overlapping, sorted by score desc
+}
+
+/**
+ * Score every hour of the day and return the best contiguous windows
+ * for an appliance of the given duration.
+ *
+ * Inputs are raw HourlyValue[] from the data clients — no API calls here.
+ * Duration is rounded to the nearest integer hour for the sliding window.
+ */
+export function computeBestWindows(
+  solar: HourlyValue[],
+  prices: HourlyValue[],
+  carbon: HourlyValue[],
+  durationHours: number,
+): BestWindowsResult {
+  const windowSize = Math.max(1, Math.round(durationHours));
+
+  const byHour = (arr: HourlyValue[]) => new Map(arr.map((h) => [h.hour, h.value]));
+  const solarMap = byHour(solar);
+  const priceMap = byHour(prices);
+  const carbonMap = byHour(carbon);
+
+  const hours24 = Array.from({ length: 24 }, (_, h) => h);
+  const solarVals = hours24.map((h) => solarMap.get(h) ?? 0);
+  const priceVals = hours24.map((h) => priceMap.get(h) ?? 0);
+  const carbonVals = hours24.map((h) => carbonMap.get(h) ?? 0);
+
+  const solarNorm = normalize(solarVals);
+  const priceNorm = normalize(priceVals);
+  const carbonNorm = normalize(carbonVals);
+
+  const scores: HourScore[] = hours24.map((hour, i) => ({
+    hour,
+    score: SOLAR_WEIGHT * solarNorm[i] + PRICE_WEIGHT * priceNorm[i] + CARBON_WEIGHT * carbonNorm[i],
+    solarWh: solarVals[i],
+    priceEurMWh: priceVals[i],
+    carbonGco2kWh: carbonVals[i],
+  }));
+
+  if (windowSize > 24) return { scores, windows: [] };
+
+  // Sliding window over all possible start hours
+  const candidates = Array.from({ length: 25 - windowSize }, (_, start) => {
+    const slice = scores.slice(start, start + windowSize);
+    return {
+      startHour: start,
+      endHour: start + windowSize,
+      avgScore: slice.reduce((s, h) => s + h.score, 0) / windowSize,
+      totalSolarWh: slice.reduce((s, h) => s + h.solarWh, 0),
+    };
+  }).sort((a, b) => b.avgScore - a.avgScore);
+
+  // Pick top 3 non-overlapping windows
+  const windows: BestWindow[] = [];
+  const used = new Set<number>();
+
+  for (const c of candidates) {
+    if (windows.length >= 3) break;
+    const overlaps = Array.from({ length: windowSize }, (_, i) => c.startHour + i).some((h) =>
+      used.has(h),
+    );
+    if (overlaps) continue;
+    windows.push(c);
+    for (let h = c.startHour; h < c.endHour; h++) used.add(h);
+  }
+
+  return { scores, windows };
+}
+
 export interface SolarCurve {
   typical: HourlyValue[];
   today: HourlyValue[];
