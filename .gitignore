@@ -1,0 +1,30 @@
+node_modules
+dist
+dist-ssr
+dev-dist
+*.local
+*.tsbuildinfo
+
+# tsc -b composite emit artifacts for the config project
+vite.config.js
+vite.config.d.ts
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.log
+npm-debug.log*
+
+# Vercel
+.vercel
+
+# Claude Code internal files
+.claude/
+CLAUDE.md
