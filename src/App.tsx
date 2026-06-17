@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useSolarDay } from '@/hooks/useSolarDay';
 import EnergyClock from '@/features/clock/EnergyClock';
+import AdvicePanel from '@/features/advice/AdvicePanel';
 
 const today = new Date();
 const dateLabel = today.toLocaleDateString('nl-NL', {
@@ -11,7 +12,7 @@ const dateLabel = today.toLocaleDateString('nl-NL', {
 const currentHour = today.getHours();
 
 export default function App() {
-  const { loading, error, solar, prices, carbon, bestWindows } = useSolarDay();
+  const { loading, error, solar, prices, carbon, bestWindows, advice } = useSolarDay();
 
   return (
     <main className="min-h-full flex flex-col px-5 pt-safe pb-safe">
@@ -22,7 +23,7 @@ export default function App() {
       </header>
 
       {/* Body */}
-      <div className="flex-1 flex flex-col justify-center gap-6 py-4">
+      <div className="flex-1 flex flex-col gap-6 py-4">
         {loading && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -84,6 +85,17 @@ export default function App() {
               <span className="inline-block w-px h-3 bg-white/40" />
               Nu
             </span>
+          </motion.div>
+        )}
+
+        {/* Advice cards */}
+        {!loading && !error && advice && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <AdvicePanel advice={advice} />
           </motion.div>
         )}
       </div>
