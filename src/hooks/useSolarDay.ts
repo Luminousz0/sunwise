@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { fetchSolarProfile } from '@/lib/pvgis';
-import { fetchTodayCloudCover } from '@/lib/openMeteo';
+import { computeSolarFromIrradiance } from '@/lib/pvgis';
+import { fetchTodayWeatherAndSolar } from '@/lib/openMeteo';
 import { fetchTodayPrices } from '@/lib/prices';
 import { fetchTodayCarbon } from '@/lib/carbon';
-import { computeSolarCurve, computeBestWindows, computeAdvice } from '@/lib/evaluate';
+import { computeBestWindows, computeAdvice } from '@/lib/evaluate';
 import { PANEL_DEFAULTS } from '@/data/panelDefaults';
 import type { HourlyValue } from '@/types/solar';
 import type { BestWindowsResult, Advice } from '@/lib/evaluate';
@@ -47,24 +47,29 @@ export function useSolarDay(
 
     async function load() {
       try {
-        const [typicalProfile, cloudForecast, prices, carbon] = await Promise.all([
-          fetchSolarProfile({ lat, lon, ...PANEL_DEFAULTS }),
-          fetchTodayCloudCover(lat, lon),
+        const [weatherAndSolar, prices, carbon] = await Promise.all([
+          fetchTodayWeatherAndSolar(lat, lon),
           fetchTodayPrices(),
           fetchTodayCarbon(),
         ]);
 
         if (cancelled) return;
 
-        const { typical, today } = computeSolarCurve(typicalProfile, cloudForecast.hourly);
-        const bestWindows = computeBestWindows(today, prices, carbon, 1.5);
-        const advice = computeAdvice(today, prices, carbon, applianceIds);
+        // Compute panel output from actual today's irradiance (clouds already baked in).
+        const solar = computeSolarFromIrradiance(weatherAndSolar.solarIrradiance, {
+          lat,
+          lon,
+          ...PANEL_DEFAULTS,
+        });
+
+        const bestWindows = computeBestWindows(solar, prices, carbon, 1.5);
+        const advice = computeAdvice(solar, prices, carbon, applianceIds);
 
         setState({
           loading: false,
           error: null,
-          solar: today,
-          typicalSolar: typical,
+          solar,
+          typicalSolar: solar, // actual today's data; no separate "typical" concept
           prices,
           carbon,
           bestWindows,

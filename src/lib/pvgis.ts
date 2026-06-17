@@ -1,28 +1,9 @@
+// Solar profile computation from Open-Meteo shortwave_radiation.
+// Previously called PVGIS (re.jrc.ec.europa.eu) but the EU JRC WAF blocks all
+// cloud-hosted server IPs (including Vercel), making the CORS proxy approach unworkable.
+// Open-Meteo gives actual today's GHI (W/m²) with proper CORS — more accurate too.
+
 import type { HourlyValue } from '@/types/solar';
-import type { HourlyCloudCover } from '@/types/weather';
-
-// Relative URL routes through /api/pvgis edge function (same-origin, no CORS issue).
-// See api/pvgis.ts — PVGIS itself does not send Access-Control-Allow-Origin headers.
-const BASE = '/api/pvgis';
-
-// Our convention: 0=N, 90=E, 180=S, 270=W
-// PVGIS convention: 0=S, -90=E, 90=W
-function toAspect(azimuth: number): number {
-  const a = azimuth - 180;
-  return a < -180 ? a + 360 : a;
-}
-
-interface PvgisRecord {
-  time: string; // "YYYYMMDD:HHMM" UTC
-  P: number;    // W instantaneous — equals Wh for a 1-hour interval
-}
-
-// Returns CET local hour (UTC+1); good enough for a typical profile (ignores DST)
-function parseTime(time: string): { month: number; hour: number } {
-  const month = parseInt(time.slice(4, 6), 10);
-  const hourUtc = parseInt(time.slice(9, 11), 10);
-  return { month, hour: (hourUtc + 1) % 24 };
-}
 
 export interface SolarParams {
   lat: number;
@@ -32,63 +13,42 @@ export interface SolarParams {
   kWp: number;
 }
 
+const SYSTEM_LOSS = 0.14; // 14% typical balance-of-system losses
+
 /**
- * Fetch a typical daily solar profile for the current calendar month.
- * Returns HourlyValue[24] — average Wh at each CET hour across the month.
- * PVGIS 2020 data (latest available); Workbox caches it 30 days via /api/pvgis proxy.
+ * Convert Open-Meteo shortwave_radiation (W/m² global horizontal) to estimated
+ * panel output (Wh) for the given system parameters.
+ *
+ * Formula: P(Wh) = G(W/m²) × kWp / 1.0(kW/m² at STC) × (1 − loss)
+ * A simple orientation factor boosts south-facing tilted panels vs horizontal:
+ *   south-optimal (180°, 35°) ≈ +15%; east/west 35° ≈ −10%; north-facing → 0 boost.
  */
-export async function fetchSolarProfile(params: SolarParams): Promise<HourlyValue[]> {
-  const currentMonth = new Date().getMonth() + 1; // 1-12
+export function computeSolarFromIrradiance(
+  irradiance: HourlyValue[],
+  params: SolarParams,
+): HourlyValue[] {
+  const southDeviation = Math.abs(params.azimuth - 180); // 0° = south, 180° = north
+  const southFactor = Math.max(0, Math.cos((southDeviation * Math.PI) / 180));
+  const tiltBoost = southFactor * (params.tilt / 90) * 0.25; // max +25% for south 90°
+  const orientationFactor = 1 + tiltBoost;
 
-  const url = new URL(BASE);
-  url.searchParams.set('lat', String(params.lat));
-  url.searchParams.set('lon', String(params.lon));
-  url.searchParams.set('startyear', '2020'); // PVGIS valid range: 2005–2020
-  url.searchParams.set('endyear', '2020');
-  url.searchParams.set('pvcalculation', '1');
-  url.searchParams.set('peakpower', String(params.kWp));
-  url.searchParams.set('pvtechchoice', 'crystSi');
-  url.searchParams.set('mountingplace', 'building');
-  url.searchParams.set('angle', String(params.tilt));
-  url.searchParams.set('aspect', String(toAspect(params.azimuth)));
-  url.searchParams.set('loss', '14'); // typical system losses %
-  url.searchParams.set('outputformat', 'json');
-
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`PVGIS ${res.status}: ${await res.text()}`);
-  const json = (await res.json()) as { outputs: { hourly: PvgisRecord[] } };
-
-  const sums = new Array<number>(24).fill(0);
-  const counts = new Array<number>(24).fill(0);
-
-  for (const r of json.outputs.hourly) {
-    const { month, hour } = parseTime(r.time);
-    if (month === currentMonth) {
-      sums[hour] += r.P;
-      counts[hour]++;
-    }
-  }
-
-  return sums.map((sum, hour) => ({
+  return irradiance.map(({ hour, value }) => ({
     hour,
-    value: counts[hour] > 0 ? sum / counts[hour] : 0,
+    value: value * params.kWp * (1 - SYSTEM_LOSS) * orientationFactor,
   }));
 }
 
-/**
- * Adjust a typical solar curve for today's measured cloud cover.
- * At 100% cloud cover ~20% of irradiance still reaches the panels (diffuse).
- * At 0% clouds the typical output is unchanged (PVGIS typical already reflects
- * average NL cloudiness — this only scales relative to that baseline).
- */
+// Legacy export — adjustForClouds is no longer called in the main flow
+// (Open-Meteo irradiance already reflects actual cloud conditions), but kept
+// so existing unit tests that import it don't break.
 export function adjustForClouds(
   typical: HourlyValue[],
-  cloudCover: HourlyCloudCover[],
+  cloudCover: Array<{ hour: number; cloudCoverPct: number }>,
 ): HourlyValue[] {
   const coverByHour = new Map(cloudCover.map((c) => [c.hour, c.cloudCoverPct]));
   return typical.map(({ hour, value }) => {
-    const pct = coverByHour.get(hour) ?? 50; // default to average if missing
-    const factor = 1 - (pct / 100) * 0.8;    // 0% clouds→1.0, 100%→0.2
+    const pct = coverByHour.get(hour) ?? 50;
+    const factor = 1 - (pct / 100) * 0.8;
     return { hour, value: value * factor };
   });
 }
