@@ -8,7 +8,12 @@ export default async function handler(request: Request) {
   const { search } = new URL(request.url);
   const pvgisUrl = `https://re.jrc.ec.europa.eu/api/v5_2/seriescalc${search}`;
 
-  const upstream = await fetch(pvgisUrl);
+  const upstream = await fetch(pvgisUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; Sunwise/1.0; +https://sunwise-kappa.vercel.app)',
+      'Accept': 'application/json',
+    },
+  });
   const body = await upstream.arrayBuffer();
 
   return new Response(body, {
