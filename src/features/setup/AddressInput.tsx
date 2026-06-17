@@ -57,7 +57,6 @@ export function AddressInput({ value, onChange }: Props) {
     }
   }
 
-  // close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -75,7 +74,7 @@ export function AddressInput({ value, onChange }: Props) {
         value={query}
         onChange={handleChange}
         placeholder="Typ je adres..."
-        className="w-full rounded-xl border border-stone-700 bg-stone-900 px-4 py-3 text-sm text-stone-100 outline-none focus:border-sun focus:ring-2 focus:ring-sun/20 placeholder:text-stone-600"
+        className="w-full rounded-xl border border-line-2 bg-surface-2 px-4 py-3 text-sm text-ink-1 outline-none transition-colors focus:border-sun focus:ring-2 focus:ring-sun/20 placeholder:text-ink-3"
         autoComplete="off"
         aria-label="Adres"
         aria-expanded={open}
@@ -83,13 +82,13 @@ export function AddressInput({ value, onChange }: Props) {
       />
       {loading && (
         <div className="absolute right-3 top-3.5">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-sun/50 border-t-transparent block" />
+          <span className="block h-4 w-4 animate-spin rounded-full border-2 border-sun/50 border-t-transparent" />
         </div>
       )}
       {open && suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-50 mt-1 w-full rounded-xl border border-stone-700 bg-stone-900 py-1 shadow-lg"
+          className="absolute z-50 mt-1 w-full rounded-xl border border-line bg-surface py-1 shadow-card"
         >
           {suggestions.map((s) => (
             <li
@@ -97,7 +96,7 @@ export function AddressInput({ value, onChange }: Props) {
               role="option"
               aria-selected={false}
               onMouseDown={() => handleSelect(s)}
-              className="cursor-pointer px-4 py-2.5 text-sm text-stone-200 hover:bg-stone-800 active:bg-stone-700"
+              className="cursor-pointer px-4 py-2.5 text-sm text-ink-2 hover:bg-surface-2 hover:text-ink-1 active:bg-line"
             >
               {s.label}
             </li>
