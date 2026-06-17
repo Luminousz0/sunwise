@@ -17,6 +17,12 @@ body {
   background: var(--night, #0c0a09);
   color: #fafaf9;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Safe-area helpers for notched devices */

@@ -57,6 +57,15 @@ export default defineConfig({
               expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
             },
           },
+          {
+            // EnergyZero day-ahead prices — short cache (new prices land ~14:00)
+            urlPattern: /^https:\/\/api\.energyzero\.nl\/.*/i,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "energyzero",
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 30 },
+            },
+          },
         ],
       },
     }),

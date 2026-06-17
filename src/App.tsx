@@ -1,20 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSolarDay, DEFAULT_LAT, DEFAULT_LON } from '@/hooks/useSolarDay';
 import { useHousehold, DEFAULT_APPLIANCES } from '@/hooks/useHousehold';
+import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import EnergyClock from '@/features/clock/EnergyClock';
 import AdvicePanel from '@/features/advice/AdvicePanel';
 import SetupFlow from '@/features/setup/SetupFlow';
 
-const today = new Date();
-const dateLabel = today.toLocaleDateString('nl-NL', {
-  weekday: 'long', day: 'numeric', month: 'long',
-});
-const currentHour = today.getHours();
+function useLiveClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
 
 export default function App() {
   const { household, setHousehold, reset } = useHousehold();
   const [setupOpen, setSetupOpen] = useState(false);
+  const [installDismissed, setInstallDismissed] = useState(false);
+  const { canInstall, install } = useInstallPrompt();
+
+  const now = useLiveClock();
+  const currentHour = now.getHours();
+  const dateLabel = now.toLocaleDateString('nl-NL', {
+    weekday: 'long', day: 'numeric', month: 'long',
+  });
+  const timeLabel = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 
   const lat = household?.address.lat ?? DEFAULT_LAT;
   const lon = household?.address.lon ?? DEFAULT_LON;
@@ -24,11 +37,18 @@ export default function App() {
     lat, lon, applianceIds,
   );
 
+  const showInstall = canInstall && !installDismissed;
+
   return (
-    <main className="min-h-full flex flex-col px-5 pt-safe pb-safe">
+    <main className="min-h-full flex flex-col px-5 pt-safe">
       {/* Header */}
       <header className="flex items-center justify-between py-4">
-        <span className="text-sun font-semibold tracking-tight text-lg">Sunwise</span>
+        <div>
+          <span className="text-sun font-semibold tracking-tight text-lg leading-none">Sunwise</span>
+          <p className="text-[11px] text-stone-500 mt-0.5 capitalize">
+            {dateLabel} · {timeLabel}
+          </p>
+        </div>
         <div className="flex items-center gap-3">
           {household && (
             <button
@@ -142,6 +162,40 @@ export default function App() {
           : 'Zonneprofiel via PVGIS · Prijzen via EnergyZero · Standaard: Amsterdam'}
       </footer>
 
+      {/* PWA install banner */}
+      <AnimatePresence>
+        {showInstall && (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            className="fixed bottom-6 left-4 right-4 rounded-2xl border border-sun/30 bg-dusk/95 backdrop-blur-sm px-4 py-3 flex items-center gap-3 shadow-xl z-40"
+          >
+            <span className="text-sun text-xl leading-none">☀</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-stone-200 leading-tight">Voeg toe aan beginscherm</p>
+              <p className="text-xs text-stone-500 truncate">Check elke ochtend de beste uren</p>
+            </div>
+            <button
+              type="button"
+              onClick={install}
+              className="shrink-0 rounded-lg bg-sun px-3 py-1.5 text-xs font-semibold text-night min-h-[36px]"
+            >
+              Toevoegen
+            </button>
+            <button
+              type="button"
+              onClick={() => setInstallDismissed(true)}
+              className="shrink-0 text-stone-600 hover:text-stone-400 transition-colors text-xs min-h-[36px] px-1"
+              aria-label="Sluiten"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Setup modal */}
       <AnimatePresence>
         {setupOpen && (
@@ -152,9 +206,6 @@ export default function App() {
           />
         )}
       </AnimatePresence>
-
-      {/* Date display — hidden but used for screen readers */}
-      <span className="sr-only">{dateLabel}</span>
     </main>
   );
 }

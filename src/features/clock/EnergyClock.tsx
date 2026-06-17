@@ -38,9 +38,8 @@ export default function EnergyClock({
   currentHour,
 }: Props) {
   const solarNorm = toMaxNorm(solar);
-  // For price: high price = bad (red) when solar is low. Invert so cheap=green.
+  // high price = bad (red) when solar is low; invert so cheap=green
   const priceNorm = toMinMaxNorm(prices);
-  // For carbon: high carbon = bad (red).
   const carbonNorm = toMinMaxNorm(carbon);
 
   const bestSet = new Set(
@@ -50,14 +49,32 @@ export default function EnergyClock({
   );
   const topWindow = bestWindows[0];
 
+  // Context sentence: what's happening right now relative to best window
+  let contextLine: string | null = null;
+  if (topWindow) {
+    if (currentHour >= topWindow.startHour && currentHour < topWindow.endHour) {
+      contextLine = 'Je zit nu in de beste uren — zet grote apparaten aan.';
+    } else if (currentHour < topWindow.startHour) {
+      const hoursUntil = topWindow.startHour - currentHour;
+      contextLine = `Beste uren beginnen over ${hoursUntil} uur (${String(topWindow.startHour).padStart(2, '0')}:00–${String(topWindow.endHour).padStart(2, '0')}:00).`;
+    } else {
+      const next = bestWindows.find((w) => w.startHour > currentHour);
+      if (next) {
+        contextLine = `Volgende raam: ${String(next.startHour).padStart(2, '0')}:00–${String(next.endHour).padStart(2, '0')}:00.`;
+      } else {
+        contextLine = 'Zonnepiek voorbij voor vandaag.';
+      }
+    }
+  }
+
   return (
     <div className="w-full select-none">
-      {/* Best window headline */}
+      {/* Headline */}
       {topWindow && (
         <motion.p
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-3 text-sm text-stone-400"
+          className="mb-1 text-sm text-stone-400"
         >
           Beste uren vandaag:{' '}
           <span className="font-semibold text-sun">
@@ -68,8 +85,29 @@ export default function EnergyClock({
         </motion.p>
       )}
 
+      {/* Context sentence */}
+      {contextLine && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mb-3 text-xs text-stone-500 leading-relaxed"
+        >
+          {contextLine}
+        </motion.p>
+      )}
+
       {/* Solar bar chart */}
-      <div className="relative flex items-end h-36 gap-px">
+      <div className="relative flex items-end h-36 gap-px rounded-sm overflow-hidden">
+        {/* Subtle dawn/dusk gradient background */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse 60% 100% at 50% 100%, rgba(245,158,11,0.06) 0%, transparent 70%)',
+          }}
+        />
+
         {/* Best-window glow overlay */}
         {bestWindows.slice(0, 1).map((w) => (
           <motion.div
@@ -86,10 +124,12 @@ export default function EnergyClock({
           />
         ))}
 
-        {/* Current-hour indicator */}
-        <div
-          className="absolute bottom-0 w-px bg-white/40"
+        {/* Current-hour pulsing indicator */}
+        <motion.div
+          className="absolute bottom-0 w-px bg-white/70 z-10"
           style={{ left: `${((currentHour + 0.5) / 24) * 100}%`, height: '100%' }}
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
         />
 
         {/* Bars */}
@@ -143,7 +183,7 @@ export default function EnergyClock({
       </div>
 
       {/* Hour axis */}
-      <div className="relative mt-2 text-[10px] text-stone-500">
+      <div className="relative mt-2 h-4 text-[10px] text-stone-500">
         {HOUR_LABELS.map((h) => (
           <span
             key={h}
