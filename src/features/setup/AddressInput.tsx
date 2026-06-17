@@ -75,7 +75,7 @@ export function AddressInput({ value, onChange }: Props) {
         value={query}
         onChange={handleChange}
         placeholder="Typ je adres..."
-        className="w-full rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm shadow-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 placeholder:text-stone-400"
+        className="w-full rounded-xl border border-stone-700 bg-stone-900 px-4 py-3 text-sm text-stone-100 outline-none focus:border-sun focus:ring-2 focus:ring-sun/20 placeholder:text-stone-600"
         autoComplete="off"
         aria-label="Adres"
         aria-expanded={open}
@@ -83,13 +83,13 @@ export function AddressInput({ value, onChange }: Props) {
       />
       {loading && (
         <div className="absolute right-3 top-3.5">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-300 border-t-transparent block" />
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-sun/50 border-t-transparent block" />
         </div>
       )}
       {open && suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-50 mt-1 w-full rounded-xl border border-amber-100 bg-white py-1 shadow-lg"
+          className="absolute z-50 mt-1 w-full rounded-xl border border-stone-700 bg-stone-900 py-1 shadow-lg"
         >
           {suggestions.map((s) => (
             <li
@@ -97,7 +97,7 @@ export function AddressInput({ value, onChange }: Props) {
               role="option"
               aria-selected={false}
               onMouseDown={() => handleSelect(s)}
-              className="cursor-pointer px-4 py-2.5 text-sm text-stone-700 hover:bg-amber-50 active:bg-amber-100"
+              className="cursor-pointer px-4 py-2.5 text-sm text-stone-200 hover:bg-stone-800 active:bg-stone-700"
             >
               {s.label}
             </li>
