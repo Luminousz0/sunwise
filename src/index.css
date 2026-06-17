@@ -14,9 +14,11 @@ body,
 
 body {
   margin: 0;
-  background: var(--night, #0c0a09);
-  color: #fafaf9;
+  background: #0c0c16;
+  color: #eaeaf5;
+  font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -25,7 +27,6 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Safe-area helpers for notched devices */
 .pt-safe {
   padding-top: env(safe-area-inset-top);
 }
