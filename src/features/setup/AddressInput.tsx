@@ -37,11 +37,7 @@ export function AddressInput({ value, onChange }: Props) {
     const q = e.target.value;
     setQuery(q);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (q.trim().length < 3) {
-      setSuggestions([]);
-      setOpen(false);
-      return;
-    }
+    if (q.trim().length < 3) { setSuggestions([]); setOpen(false); return; }
     debounceRef.current = setTimeout(() => fetchSuggestions(q), 300);
   }
 
@@ -59,9 +55,7 @@ export function AddressInput({ value, onChange }: Props) {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -74,7 +68,13 @@ export function AddressInput({ value, onChange }: Props) {
         value={query}
         onChange={handleChange}
         placeholder="Typ je adres..."
-        className="w-full rounded-xl border border-line-2 bg-surface-2 px-4 py-3 text-sm text-ink-1 outline-none transition-colors focus:border-sun focus:ring-2 focus:ring-sun/20 placeholder:text-ink-3"
+        className="w-full rounded-xl px-4 py-3 text-sm text-warm outline-none transition-colors placeholder:text-warm/30"
+        style={{
+          background: 'rgba(242,234,216,0.07)',
+          border: '1px solid rgba(242,234,216,0.12)',
+        }}
+        onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(214,162,74,0.5)')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(242,234,216,0.12)')}
         autoComplete="off"
         aria-label="Adres"
         aria-expanded={open}
@@ -82,13 +82,18 @@ export function AddressInput({ value, onChange }: Props) {
       />
       {loading && (
         <div className="absolute right-3 top-3.5">
-          <span className="block h-4 w-4 animate-spin rounded-full border-2 border-sun/50 border-t-transparent" />
+          <span className="block h-4 w-4 animate-spin rounded-full border-2 border-gold/50 border-t-transparent" />
         </div>
       )}
       {open && suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-50 mt-1 w-full rounded-xl border border-line bg-surface py-1 shadow-card"
+          className="absolute z-50 mt-1 w-full rounded-xl py-1"
+          style={{
+            background: '#211b12',
+            border: '1px solid rgba(242,234,216,0.10)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          }}
         >
           {suggestions.map((s) => (
             <li
@@ -96,7 +101,7 @@ export function AddressInput({ value, onChange }: Props) {
               role="option"
               aria-selected={false}
               onMouseDown={() => handleSelect(s)}
-              className="cursor-pointer px-4 py-2.5 text-sm text-ink-2 hover:bg-surface-2 hover:text-ink-1 active:bg-line"
+              className="cursor-pointer px-4 py-2.5 text-sm text-warm/60 transition-colors hover:bg-white/[0.04] hover:text-warm"
             >
               {s.label}
             </li>

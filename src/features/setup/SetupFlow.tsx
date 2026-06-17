@@ -14,8 +14,6 @@ interface Props {
   onClose: () => void;
 }
 
-// ── Direction picker ──────────────────────────────────────────────────────────
-
 const DIRECTIONS = [
   { label: 'N', az: 0 }, { label: 'NO', az: 45 },
   { label: 'O', az: 90 }, { label: 'ZO', az: 135 },
@@ -23,25 +21,15 @@ const DIRECTIONS = [
   { label: 'W', az: 270 }, { label: 'NW', az: 315 },
 ];
 
-// ── Step 1: Address ───────────────────────────────────────────────────────────
-
-function StepAddress({
-  value,
-  onChange,
-}: {
-  value: Address | null;
-  onChange: (a: Address) => void;
-}) {
+function StepAddress({ value, onChange }: { value: Address | null; onChange: (a: Address) => void }) {
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <p className="mb-2 text-xs text-ink-2">
-          We gebruiken je adres om je zonneprofiel op te halen.
-        </p>
-        <AddressInput value={value} onChange={onChange} />
-      </div>
+      <p className="text-xs text-warm/50">
+        We gebruiken je adres om je zonneprofiel op te halen.
+      </p>
+      <AddressInput value={value} onChange={onChange} />
       {value && (
-        <p className="flex items-center gap-1.5 text-xs font-medium text-leaf">
+        <p className="flex items-center gap-1.5 text-xs font-medium text-go">
           <Check className="h-4 w-4" strokeWidth={2} /> {value.label}
         </p>
       )}
@@ -49,20 +37,11 @@ function StepAddress({
   );
 }
 
-// ── Step 2: Roof ──────────────────────────────────────────────────────────────
-
-function StepRoof({
-  roof,
-  onChange,
-}: {
-  roof: RoofConfig;
-  onChange: (r: RoofConfig) => void;
-}) {
+function StepRoof({ roof, onChange }: { roof: RoofConfig; onChange: (r: RoofConfig) => void }) {
   return (
     <div className="flex flex-col gap-6">
-      {/* Orientation */}
       <div>
-        <label className="mb-2 block text-xs font-medium text-ink-2">Dakrichting</label>
+        <label className="mb-2 block text-xs font-medium text-warm/50">Dakrichting</label>
         <div className="grid grid-cols-4 gap-1.5">
           {DIRECTIONS.map(({ label, az }) => (
             <button
@@ -71,9 +50,14 @@ function StepRoof({
               onClick={() => onChange({ ...roof, azimuth: az })}
               className={`rounded-lg py-2.5 text-sm font-medium transition-colors ${
                 roof.azimuth === az
-                  ? 'bg-sun text-stone-900'
-                  : 'bg-surface-2 text-ink-2 hover:bg-line hover:text-ink-1'
+                  ? 'bg-gold text-stone-900'
+                  : 'text-warm/50 hover:text-warm'
               }`}
+              style={
+                roof.azimuth !== az
+                  ? { background: 'rgba(242,234,216,0.06)', border: '1px solid rgba(242,234,216,0.08)' }
+                  : undefined
+              }
             >
               {label}
             </button>
@@ -81,69 +65,51 @@ function StepRoof({
         </div>
       </div>
 
-      {/* Tilt */}
       <div>
         <div className="mb-2 flex justify-between text-xs">
-          <label className="font-medium text-ink-2">Dakhelling</label>
-          <span className="font-semibold text-ink-1">{roof.tilt}°</span>
+          <label className="font-medium text-warm/50">Dakhelling</label>
+          <span className="font-semibold text-warm">{roof.tilt}°</span>
         </div>
         <input
           type="range"
-          min={0}
-          max={60}
-          step={5}
+          min={0} max={60} step={5}
           value={roof.tilt}
           onChange={(e) => onChange({ ...roof, tilt: Number(e.target.value) })}
-          className="w-full accent-sun"
+          className="w-full accent-gold"
         />
-        <div className="mt-1 flex justify-between text-[10px] text-ink-3">
-          <span>0° (plat)</span>
-          <span>60° (steil)</span>
+        <div className="mt-1 flex justify-between text-[10px] text-warm/30">
+          <span>0° (plat)</span><span>60° (steil)</span>
         </div>
       </div>
 
-      {/* kWp */}
       <div>
         <div className="mb-2 flex justify-between text-xs">
-          <label className="font-medium text-ink-2">Piekvermogen (kWp)</label>
-          <span className="font-semibold text-ink-1">{roof.kWp} kWp</span>
+          <label className="font-medium text-warm/50">Piekvermogen (kWp)</label>
+          <span className="font-semibold text-warm">{roof.kWp} kWp</span>
         </div>
         <input
           type="range"
-          min={0.5}
-          max={20}
-          step={0.5}
+          min={0.5} max={20} step={0.5}
           value={roof.kWp}
           onChange={(e) => onChange({ ...roof, kWp: Number(e.target.value) })}
-          className="w-full accent-sun"
+          className="w-full accent-gold"
         />
-        <div className="mt-1 flex justify-between text-[10px] text-ink-3">
-          <span>0.5 kWp</span>
-          <span>20 kWp</span>
+        <div className="mt-1 flex justify-between text-[10px] text-warm/30">
+          <span>0.5 kWp</span><span>20 kWp</span>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Step 3: Appliances ────────────────────────────────────────────────────────
-
-function StepAppliances({
-  selected,
-  onChange,
-}: {
-  selected: string[];
-  onChange: (ids: string[]) => void;
-}) {
+function StepAppliances({ selected, onChange }: { selected: string[]; onChange: (ids: string[]) => void }) {
   function toggle(id: string) {
-    onChange(
-      selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id],
-    );
+    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
   }
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs text-ink-2">
+      <p className="text-xs text-warm/50">
         Selecteer de apparaten die je wilt plannen op zonne-energie.
       </p>
       <div className="grid grid-cols-2 gap-2">
@@ -154,19 +120,21 @@ function StepAppliances({
               key={a.id}
               type="button"
               onClick={() => toggle(a.id)}
-              className={`flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left transition-colors ${
+              className="flex items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-colors"
+              style={
                 on
-                  ? 'border-sun/30 text-ink-1'
-                  : 'border-line text-ink-2 hover:border-line-2 hover:text-ink-1'
-              }`}
-              style={on ? { background: 'rgba(245,158,11,0.10)' } : { background: 'rgba(255,255,255,0.03)' }}
+                  ? { background: 'rgba(214,162,74,0.12)', border: '1px solid rgba(214,162,74,0.25)' }
+                  : { background: 'rgba(242,234,216,0.04)', border: '1px solid rgba(242,234,216,0.08)' }
+              }
             >
-              <span className={on ? 'text-sun' : 'text-ink-3'}>
+              <span className={on ? 'text-gold' : 'text-warm/35'}>
                 <ApplianceIcon id={a.id} className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-xs font-medium leading-tight">{a.name}</p>
-                <p className="text-[10px] text-ink-3">{a.kWh} kWh</p>
+                <p className={`text-xs font-medium leading-tight ${on ? 'text-warm' : 'text-warm/60'}`}>
+                  {a.name}
+                </p>
+                <p className="text-[10px] text-warm/30">{a.kWh} kWh</p>
               </div>
             </button>
           );
@@ -175,8 +143,6 @@ function StepAppliances({
     </div>
   );
 }
-
-// ── Main flow ─────────────────────────────────────────────────────────────────
 
 const STEPS = ['Adres', 'Dak', 'Apparaten'];
 
@@ -188,22 +154,16 @@ export default function SetupFlow({ initial, onSave, onClose }: Props) {
     initial?.applianceIds ?? ['washer', 'dishwasher', 'dryer'],
   );
 
-  function handleNext() {
-    if (step < 2) setStep(step + 1);
-  }
-
   function handleSave() {
     if (!address) return;
     onSave({ address, roof, applianceIds });
     onClose();
   }
 
-  const canNext = step === 0 ? !!address : true;
-
   return (
-    /* Backdrop */
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end bg-black/70 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex flex-col justify-end backdrop-blur-md"
+      style={{ background: 'rgba(14,11,6,0.75)' }}
       onClick={onClose}
     >
       <motion.div
@@ -211,11 +171,18 @@ export default function SetupFlow({ initial, onSave, onClose }: Props) {
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="mx-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border-t border-line bg-canvas px-5 pt-4 pb-safe shadow-sheet"
+        className="mx-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl px-5 pt-4 pb-safe shadow-sheet"
+        style={{
+          background: '#1e1810',
+          borderTop: '1px solid rgba(242,234,216,0.10)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle */}
-        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-line-2" />
+        <div
+          className="mx-auto mb-5 h-1 w-10 rounded-full"
+          style={{ background: 'rgba(242,234,216,0.15)' }}
+        />
 
         {/* Step indicator */}
         <div className="mb-5 flex items-center gap-2">
@@ -223,15 +190,18 @@ export default function SetupFlow({ initial, onSave, onClose }: Props) {
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
-                  i <= step ? 'bg-sun text-stone-900' : 'bg-surface-2 text-ink-3'
+                  i <= step ? 'bg-gold text-stone-900' : 'text-warm/30'
                 }`}
+                style={i > step ? { background: 'rgba(242,234,216,0.08)' } : undefined}
               >
                 {i + 1}
               </div>
-              <span className={`text-xs ${i === step ? 'font-semibold text-ink-1' : 'text-ink-3'}`}>
+              <span className={`text-xs ${i === step ? 'font-semibold text-warm' : 'text-warm/30'}`}>
                 {s}
               </span>
-              {i < STEPS.length - 1 && <ChevronRight className="h-3.5 w-3.5 text-ink-3" />}
+              {i < STEPS.length - 1 && (
+                <ChevronRight className="h-3.5 w-3.5 text-warm/20" />
+              )}
             </div>
           ))}
         </div>
@@ -263,8 +233,8 @@ export default function SetupFlow({ initial, onSave, onClose }: Props) {
           </Button>
           <Button
             className="flex-1"
-            onClick={step < 2 ? handleNext : handleSave}
-            disabled={!canNext}
+            onClick={step < 2 ? () => setStep(step + 1) : handleSave}
+            disabled={step === 0 && !address}
           >
             {step < 2 ? 'Volgende' : 'Opslaan'}
           </Button>

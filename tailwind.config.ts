@@ -5,35 +5,33 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Dark premium palette
-        canvas: "#0c0c16",
-        surface: "#12121e",
-        "surface-2": "#1a1a2a",
-        line: "#22223a",
-        "line-2": "#2e2e4a",
-        // Text hierarchy on dark
-        "ink-1": "#eaeaf5",
-        "ink-2": "#8a8aaa",
-        "ink-3": "#484868",
-        // Solar accent — amber stays vivid on dark
-        sun: "#f59e0b",
-        "sun-soft": "#fbbf24",
-        "sun-warm": "#fb923c",
-        "sun-ink": "#f59e0b",
-        // Other accents — brighter for dark backgrounds
-        leaf: "#34d399",
-        cheap: "#34d399",
-        pricey: "#f87171",
+        // Warm dark palette — lighter than Farmcast, iOS-premium feel
+        canvas: "#1a1610",      // page background
+        surface: "#231d14",     // card / raised surface
+        "surface-2": "#2c2520", // elevated fills / hover
+        line: "#3a3025",        // borders
+        "line-2": "#4a3d2e",    // slightly lighter borders
+
+        // Warm off-white text — use /opacity variants for hierarchy
+        warm: "#f2ead8",        // primary: text-warm  secondary: text-warm/60  muted: text-warm/35
+
+        // Solar accent palette — natural, not neon
+        gold: "#d6a24a",        // wheat-gold — solar / best hours
+        "gold-soft": "#e8bf6a", // lighter gold
+        go: "#6aa84f",          // field green — solar active
+        caution: "#e2902b",     // harvest ochre — upcoming window
+        stop: "#cf5a3e",        // terracotta — no production
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Fraunces", "Georgia", "serif"],
+        sans: ["Inter Tight", "Inter", "system-ui", "sans-serif"],
+      },
+      backdropBlur: {
+        glass: "16px",
       },
       boxShadow: {
-        card: "0 1px 3px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.5)",
-        glow: "0 0 28px rgba(245,158,11,0.45), 0 0 8px rgba(245,158,11,0.25)",
-        "glow-sm": "0 0 12px rgba(245,158,11,0.3)",
-        "glow-leaf": "0 0 20px rgba(52,211,153,0.3)",
-        sheet: "0 -8px 48px rgba(0,0,0,0.8)",
+        card: "0 4px 24px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.4)",
+        sheet: "0 -8px 48px rgba(0,0,0,0.6)",
       },
     },
   },

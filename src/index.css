@@ -14,9 +14,11 @@ body,
 
 body {
   margin: 0;
-  background: #0c0c16;
-  color: #eaeaf5;
-  font-family: "Inter", system-ui, sans-serif;
+  /* Subtle warm glow at top — like distant sunrise behind the UI */
+  background-color: #1a1610;
+  background-image: radial-gradient(ellipse 120% 40% at 50% 0%, #241e12 0%, #1a1610 50%);
+  color: #f2ead8;
+  font-family: "Inter Tight", "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
@@ -25,6 +27,16 @@ body {
 
 * {
   -webkit-overflow-scrolling: touch;
+}
+
+/* Frosted glass surface — same technique as Farmcast */
+@layer components {
+  .glass {
+    @apply rounded-2xl backdrop-blur-glass;
+    background: rgba(242, 234, 216, 0.045);
+    border: 1px solid rgba(242, 234, 216, 0.09);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .pt-safe {

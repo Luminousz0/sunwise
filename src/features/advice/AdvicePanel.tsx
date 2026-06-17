@@ -13,33 +13,36 @@ function fmt(hour: number) {
 function TopHoursCard({ topHours }: { topHours: number[] }) {
   return (
     <Card className="p-5">
-      <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-ink-3">
+      <p className="mb-4 text-[11px] font-medium uppercase tracking-widest text-warm/35">
         Beste uren vandaag
       </p>
-      <div className="flex gap-3">
+      <div className="flex gap-2.5">
         {topHours.slice(0, 3).map((h, i) => (
           <div
             key={h}
-            className={`flex-1 rounded-xl border py-4 text-center transition-colors ${
-              i === 0
-                ? 'border-sun/30 text-sun'
-                : 'border-line-2 text-ink-1'
-            }`}
+            className="flex-1 rounded-xl py-4 text-center"
             style={
               i === 0
                 ? {
-                    background: 'rgba(245,158,11,0.10)',
-                    boxShadow: '0 0 20px rgba(245,158,11,0.15)',
+                    background: 'rgba(214,162,74,0.12)',
+                    border: '1px solid rgba(214,162,74,0.25)',
                   }
-                : { background: 'rgba(255,255,255,0.03)' }
+                : {
+                    background: 'rgba(242,234,216,0.04)',
+                    border: '1px solid rgba(242,234,216,0.08)',
+                  }
             }
           >
-            <p className={`text-xl font-bold ${i === 0 ? 'text-sun' : 'text-ink-1'}`}>{fmt(h)}</p>
-            <p className="mt-1 text-[10px] text-ink-3">#{i + 1}</p>
+            <p
+              className={`font-display text-xl font-semibold ${i === 0 ? 'text-gold' : 'text-warm/70'}`}
+            >
+              {fmt(h)}
+            </p>
+            <p className="mt-1 text-[10px] text-warm/30">#{i + 1}</p>
           </div>
         ))}
       </div>
-      <p className="mt-4 text-xs leading-relaxed text-ink-2">
+      <p className="mt-4 text-xs leading-relaxed text-warm/50">
         Op deze uren is je zonne-opwek het hoogst. Plan grote apparaten hier in om zoveel
         mogelijk van je eigen stroom te gebruiken.
       </p>
@@ -59,27 +62,32 @@ function ApplianceCard({ a }: { a: ApplianceAdvice }) {
       {/* Header row */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sun/12 text-sun"
-            style={{ background: 'rgba(245,158,11,0.10)' }}>
+          <span
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-gold"
+            style={{ background: 'rgba(214,162,74,0.12)' }}
+          >
             <ApplianceIcon id={a.applianceId} className="h-5 w-5" />
           </span>
-          <span className="text-sm font-semibold text-ink-1">{a.name}</span>
+          <span className="text-sm font-semibold text-warm">{a.name}</span>
         </div>
-        <span className="text-xs font-medium text-sun">
+        <span className="font-display text-sm font-medium text-gold">
           {fmt(startHour)}
-          <span className="mx-1 text-ink-3">–</span>
+          <span className="mx-1 text-warm/25">–</span>
           {fmt(endHour)}
         </span>
       </div>
 
       {/* Self-consumption bar */}
-      <div className="mb-1 flex items-center justify-between text-[11px] text-ink-3">
+      <div className="mb-1 flex items-center justify-between text-[11px] text-warm/35">
         <span>Zonne-aandeel</span>
-        <span className="font-semibold text-ink-2">{pct}%</span>
+        <span className="font-medium text-warm/55">{pct}%</span>
       </div>
-      <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-line">
+      <div
+        className="mb-3 h-1.5 w-full overflow-hidden rounded-full"
+        style={{ background: 'rgba(242,234,216,0.08)' }}
+      >
         <motion.div
-          className="h-full rounded-full bg-sun"
+          className="h-full rounded-full bg-gold"
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ delay: 0.3, duration: 0.6, ease: 'easeOut' }}
@@ -88,8 +96,8 @@ function ApplianceCard({ a }: { a: ApplianceAdvice }) {
 
       {/* Saving */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-ink-3">Geschatte besparing</span>
-        <span className="text-base font-bold text-leaf">€ {saving}</span>
+        <span className="text-xs text-warm/35">Geschatte besparing</span>
+        <span className="font-display text-base font-semibold text-go">€ {saving}</span>
       </div>
     </Card>
   );
@@ -105,16 +113,16 @@ function SalderingBanner({ phase }: { phase: Advice['salderingPhase'] }) {
       className="p-4"
       style={
         !active
-          ? { borderColor: 'rgba(245,158,11,0.20)', background: 'rgba(245,158,11,0.06)' }
+          ? { borderColor: 'rgba(214,162,74,0.20)', background: 'rgba(214,162,74,0.06)' }
           : undefined
       }
     >
       <div className="flex gap-3">
-        <span className={`mt-0.5 shrink-0 ${active ? 'text-ink-3' : 'text-sun'}`}>
+        <span className={`mt-0.5 shrink-0 ${active ? 'text-warm/30' : 'text-gold'}`}>
           <Icon className="h-5 w-5" strokeWidth={1.75} />
         </span>
-        <div className="text-xs leading-relaxed text-ink-2">
-          <p className="mb-1 font-semibold text-ink-1">
+        <div className="text-xs leading-relaxed text-warm/50">
+          <p className="mb-1 font-semibold text-warm/80">
             {active ? 'Saldering loopt nog' : 'Saldering afgelopen'}
           </p>
           {active ? (

@@ -2,11 +2,7 @@ import type { HTMLAttributes } from 'react';
 
 type Props = HTMLAttributes<HTMLDivElement>;
 
+/** Frosted glass surface — warm dark theme. */
 export default function Card({ className = '', ...rest }: Props) {
-  return (
-    <div
-      className={`rounded-2xl border border-line bg-surface shadow-card ${className}`}
-      {...rest}
-    />
-  );
+  return <div className={`glass ${className}`} {...rest} />;
 }

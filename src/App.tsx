@@ -20,17 +20,18 @@ function useLiveClock() {
   return now;
 }
 
-// Adaptive glow color behind the hero based on solar status
+// Radial glow color that bleeds through the hero glass card
 const TONE_GLOW: Record<NowTone, string> = {
-  active: 'rgba(52,211,153,0.16)',
-  upcoming: 'rgba(245,158,11,0.20)',
-  past: 'rgba(30,30,60,0.0)',
+  active: 'rgba(106,168,79,0.14)',
+  upcoming: 'rgba(226,144,43,0.16)',
+  past: 'transparent',
 };
 
+// Status badge — natural condition colors
 const TONE_PILL: Record<NowTone, string> = {
-  active: 'bg-leaf/15 text-leaf border border-leaf/25',
-  upcoming: 'bg-sun/15 text-sun border border-sun/25',
-  past: 'bg-surface-2 text-ink-3 border border-line',
+  active: 'text-go border-go/30',
+  upcoming: 'text-caution border-caution/30',
+  past: 'text-warm/35 border-warm/10',
 };
 
 export default function App() {
@@ -61,26 +62,29 @@ export default function App() {
 
   return (
     <main className="mx-auto flex min-h-full max-w-lg flex-col px-5 pt-safe">
+
       {/* Header */}
-      <header className="flex items-center justify-between py-4">
+      <header className="flex items-center justify-between py-5">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sun/15 shadow-glow-sm">
-            <Sun className="h-5 w-5 text-sun" strokeWidth={2} />
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gold/15">
+            <Sun className="h-4.5 w-4.5 text-gold" strokeWidth={2} style={{ width: 18, height: 18 }} />
           </span>
           <div className="leading-none">
-            <span className="text-base font-bold tracking-tight text-ink-1">Sunwise</span>
-            <p className="mt-0.5 text-[11px] capitalize text-ink-3">
+            <span className="font-display text-lg font-semibold text-warm">Sunwise</span>
+            <p className="mt-0.5 text-[11px] capitalize text-warm/35">
               {dateLabel} · {timeLabel}
             </p>
           </div>
         </div>
+
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setSetupOpen(true)}
-            className="inline-flex min-h-[36px] max-w-[9rem] items-center gap-1.5 rounded-full border border-line-2 bg-surface-2 px-3 text-xs font-medium text-ink-2 transition-colors hover:border-line hover:text-ink-1"
+            className="inline-flex min-h-[36px] max-w-[9rem] items-center gap-1.5 rounded-full px-3 text-xs font-medium text-warm/60 transition-colors hover:text-warm"
+            style={{ background: 'rgba(242,234,216,0.06)', border: '1px solid rgba(242,234,216,0.10)' }}
           >
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-sun" strokeWidth={2} />
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={2} />
             <span className="truncate">{placeName ?? 'Stel woning in'}</span>
           </button>
           {household && (
@@ -95,22 +99,27 @@ export default function App() {
       </header>
 
       {/* Body */}
-      <div className="flex flex-1 flex-col gap-4 py-1">
+      <div className="flex flex-1 flex-col gap-3 pb-4">
 
         {/* First-time CTA */}
         {!household && !loading && !error && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-3 rounded-2xl border border-sun/20 bg-sun/8 p-4"
-              style={{ background: 'rgba(245,158,11,0.07)' }}>
+            <div
+              className="flex items-center gap-3 rounded-2xl p-4"
+              style={{
+                background: 'rgba(214,162,74,0.08)',
+                border: '1px solid rgba(214,162,74,0.18)',
+              }}
+            >
               <div className="flex-1">
-                <p className="text-sm font-semibold text-ink-1">Stel je woning in</p>
-                <p className="mt-0.5 text-xs text-ink-2">
+                <p className="text-sm font-semibold text-warm">Stel je woning in</p>
+                <p className="mt-0.5 text-xs text-warm/55">
                   Nu: Amsterdam, zuid 4 kWp. Gebruik je eigen dak voor exacte uren.
                 </p>
               </div>
-              <Button onClick={() => setSetupOpen(true)} className="shrink-0 px-3">
+              <Button onClick={() => setSetupOpen(true)} className="shrink-0 px-3 text-xs">
                 Instellen
-                <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
               </Button>
             </div>
           </motion.div>
@@ -118,64 +127,73 @@ export default function App() {
 
         {loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-3">
-            <div className="h-28 w-full animate-pulse rounded-2xl bg-surface-2" />
-            <div className="h-52 w-full animate-pulse rounded-2xl bg-surface-2" />
+            <div className="h-32 w-full animate-pulse rounded-2xl bg-surface-2" />
+            <div className="h-56 w-full animate-pulse rounded-2xl bg-surface-2" />
             <div className="h-28 w-full animate-pulse rounded-2xl bg-surface-2" />
           </motion.div>
         )}
 
         {error && (
-          <div className="rounded-2xl border border-pricey/20 bg-pricey/10 p-4">
-            <p className="text-sm font-semibold text-pricey">Kon gegevens niet laden</p>
-            <p className="mt-1 text-xs text-ink-2">Probeer het later opnieuw. {error}</p>
+          <div
+            className="rounded-2xl p-4"
+            style={{ background: 'rgba(207,90,62,0.10)', border: '1px solid rgba(207,90,62,0.20)' }}
+          >
+            <p className="text-sm font-semibold text-stop">Kon gegevens niet laden</p>
+            <p className="mt-1 text-xs text-warm/55">Probeer het later opnieuw. {error}</p>
           </div>
         )}
 
         {!loading && !error && (
           <>
-            {/* "Now" hero — the star of the screen */}
+            {/* "Now" hero — warm glass card with Fraunces time display */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 240, damping: 22 }}
             >
               <div
-                className="relative overflow-hidden rounded-3xl border border-line p-6 shadow-card"
+                className="relative overflow-hidden rounded-3xl p-6"
                 style={{
-                  background: `radial-gradient(ellipse 110% 90% at 50% 150%, ${TONE_GLOW[status.tone]} 0%, transparent 65%), #12121e`,
+                  background: `radial-gradient(ellipse 120% 80% at 50% 140%, ${TONE_GLOW[status.tone]} 0%, transparent 60%), rgba(242,234,216,0.045)`,
+                  border: '1px solid rgba(242,234,216,0.09)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
                 }}
               >
                 {/* Status badge */}
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-widest ${TONE_PILL[status.tone]}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide ${TONE_PILL[status.tone]}`}
+                  style={{ background: 'rgba(242,234,216,0.06)' }}
                 >
                   {status.tone === 'active' && (
                     <motion.span
                       className="h-1.5 w-1.5 rounded-full bg-current"
-                      animate={{ opacity: [1, 0.25, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+                      animate={{ opacity: [1, 0.2, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
                     />
                   )}
                   {status.label}
                 </span>
 
-                {/* Big time range */}
+                {/* Fraunces time range — the centrepiece */}
                 {status.window ? (
                   <p
-                    className="mt-4 font-extrabold text-ink-1"
-                    style={{ fontSize: '3rem', lineHeight: 1.05, letterSpacing: '-0.04em' }}
+                    className="mt-4 font-display font-semibold text-warm"
+                    style={{ fontSize: '3.25rem', lineHeight: 1.05, letterSpacing: '-0.02em' }}
                   >
                     {range(status.window)}
                   </p>
                 ) : (
-                  <p className="mt-4 text-2xl font-bold text-ink-2" style={{ letterSpacing: '-0.02em' }}>
+                  <p
+                    className="mt-4 font-display font-semibold text-warm/55"
+                    style={{ fontSize: '2rem', lineHeight: 1.2, letterSpacing: '-0.01em' }}
+                  >
                     {status.detail}
                   </p>
                 )}
 
-                {/* Detail line — only show when we have a window */}
                 {status.window && (
-                  <p className="mt-2.5 text-sm leading-relaxed text-ink-2">{status.detail}</p>
+                  <p className="mt-2.5 text-sm leading-relaxed text-warm/55">{status.detail}</p>
                 )}
               </div>
             </motion.div>
@@ -184,22 +202,21 @@ export default function App() {
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 240, damping: 22, delay: 0.06 }}
+              transition={{ type: 'spring', stiffness: 240, damping: 22, delay: 0.07 }}
+              className="glass p-5"
             >
-              <div className="rounded-2xl border border-line bg-surface p-5 shadow-card">
-                <EnergyClock
-                  solar={solar}
-                  prices={prices}
-                  carbon={carbon}
-                  bestWindows={windows}
-                  currentHour={currentHour}
-                />
-              </div>
+              <EnergyClock
+                solar={solar}
+                prices={prices}
+                carbon={carbon}
+                bestWindows={windows}
+                currentHour={currentHour}
+              />
             </motion.div>
 
             {/* Advice */}
             {advice && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}>
                 <AdvicePanel advice={advice} />
               </motion.div>
             )}
@@ -208,10 +225,10 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <footer className="py-4 text-center text-[10px] text-ink-3">
+      <footer className="py-4 text-center text-[10px] text-warm/30 font-sans">
         {household
-          ? `${household.roof.kWp} kWp · ${placeName} · zon via Open-Meteo · prijzen via EnergyZero`
-          : 'Zon via Open-Meteo · prijzen via EnergyZero · standaard: Amsterdam'}
+          ? `${household.roof.kWp} kWp · ${placeName} · Open-Meteo · EnergyZero`
+          : 'Open-Meteo · EnergyZero · standaard: Amsterdam'}
       </footer>
 
       {/* PWA install banner */}
@@ -222,14 +239,15 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 24 }}
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-            className="fixed bottom-6 left-4 right-4 z-40 mx-auto flex max-w-lg items-center gap-3 rounded-2xl border border-line-2 bg-surface/95 px-4 py-3 shadow-sheet backdrop-blur-sm"
+            className="fixed bottom-6 left-4 right-4 z-40 mx-auto flex max-w-lg items-center gap-3 rounded-2xl px-4 py-3 shadow-sheet backdrop-blur-glass"
+            style={{ background: 'rgba(35,29,20,0.92)', border: '1px solid rgba(242,234,216,0.10)' }}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sun/15">
-              <Sun className="h-5 w-5 text-sun" strokeWidth={2} />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold/15">
+              <Sun className="h-5 w-5 text-gold" strokeWidth={2} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold leading-tight text-ink-1">Voeg toe aan beginscherm</p>
-              <p className="truncate text-xs text-ink-2">Check elke ochtend de beste uren</p>
+              <p className="text-sm font-semibold leading-tight text-warm">Voeg toe aan beginscherm</p>
+              <p className="truncate text-xs text-warm/50">Check elke ochtend de beste uren</p>
             </div>
             <Button onClick={install} className="shrink-0 px-3 text-xs">
               Toevoegen

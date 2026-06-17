@@ -10,12 +10,13 @@ interface Props {
   currentHour: number;
 }
 
-// Green (low/cheap/clean) → Red (high/expensive/dirty) — tuned for dark backgrounds
+// Natural green → terracotta heatmap (matches warm palette, visible on dark bg)
 function heatColor(norm: number): string {
-  const hue = Math.round(128 - norm * 128);
-  const sat = 68;
-  const lit = norm > 0.5 ? 50 : 56;
-  return `hsl(${hue}, ${sat}%, ${lit}%)`;
+  // go (#6aa84f) at 0 → stop (#cf5a3e) at 1, via warm ochre midpoint
+  const h = Math.round(110 - norm * 70); // 110 (yellow-green) → 40 (orange)
+  const s = 52;
+  const l = 48 + (1 - norm) * 8; // slightly brighter when cheap/clean
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 function toMaxNorm(arr: HourlyValue[]): number[] {
@@ -33,10 +34,10 @@ function toMinMaxNorm(arr: HourlyValue[]): number[] {
 
 const HOUR_LABELS = [0, 6, 12, 18, 23];
 
-// Dark-theme bar colors
-const BAR_OFF = '#18182a';
-const BAR_PROD = '#d97706';  // amber-600 — production
-const BAR_BEST = '#f59e0b';  // amber-400 — best window (brighter)
+// Warm-palette bar colors
+const BAR_OFF = '#2a2318';   // warm dark near-black — inactive hours
+const BAR_PROD = '#b8862a';  // muted wheat-gold — production
+const BAR_BEST = '#d6a24a';  // full wheat-gold — best window
 
 export default function EnergyClock({
   solar,
@@ -60,48 +61,48 @@ export default function EnergyClock({
       {/* Solar bar chart */}
       <div
         className="relative flex h-44 items-end gap-px overflow-hidden rounded-xl"
-        style={{ background: '#0e0e1a' }}
+        style={{ background: '#16120c' }}
       >
-        {/* Warm radial glow at the solar peak */}
+        {/* Warm radial glow at the peak — like sun warmth behind the bars */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(ellipse 80% 130% at 50% 100%, rgba(245,158,11,0.18) 0%, rgba(251,146,60,0.06) 40%, transparent 70%)',
+              'radial-gradient(ellipse 70% 120% at 50% 100%, rgba(214,162,74,0.14) 0%, rgba(184,134,42,0.05) 50%, transparent 70%)',
           }}
         />
 
-        {/* Best-window background column */}
+        {/* Best-window highlight column */}
         {bestWindows.slice(0, 1).map((w) => (
           <motion.div
             key={w.startHour}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="absolute bottom-0 rounded-sm"
+            className="absolute bottom-0"
             style={{
               left: `${(w.startHour / 24) * 100}%`,
               width: `${((w.endHour - w.startHour) / 24) * 100}%`,
               height: '100%',
-              background: 'rgba(245,158,11,0.07)',
-              borderTop: '1px solid rgba(245,158,11,0.25)',
+              background: 'rgba(214,162,74,0.06)',
+              borderTop: '1px solid rgba(214,162,74,0.22)',
             }}
           />
         ))}
 
-        {/* Current-hour glowing indicator */}
+        {/* Current-hour indicator — warm gold, no aggressive glow */}
         <motion.div
           className="absolute bottom-0 z-10"
           style={{
             left: `${((currentHour + 0.5) / 24) * 100}%`,
-            width: '2px',
+            width: '1.5px',
             height: '100%',
-            transform: 'translateX(-1px)',
-            background: 'rgba(245,158,11,0.95)',
-            boxShadow: '0 0 8px rgba(245,158,11,0.9), 0 0 20px rgba(245,158,11,0.4)',
+            transform: 'translateX(-0.75px)',
+            background: 'rgba(214,162,74,0.85)',
+            boxShadow: '0 0 5px rgba(214,162,74,0.5)',
           }}
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+          animate={{ opacity: [0.45, 0.9, 0.45] }}
+          transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
         />
 
         {/* Bars */}
@@ -115,9 +116,6 @@ export default function EnergyClock({
               style={{
                 backgroundColor: isBest ? BAR_BEST : h > 0.05 ? BAR_PROD : BAR_OFF,
                 minHeight: 2,
-                boxShadow: isBest
-                  ? '0 0 10px rgba(245,158,11,0.7), 0 0 20px rgba(245,158,11,0.3)'
-                  : h > 0.05 ? '0 0 4px rgba(217,119,6,0.25)' : 'none',
               }}
               initial={{ scaleY: 0 }}
               animate={{ scaleY: Math.max(h, 0.02) }}
@@ -128,7 +126,7 @@ export default function EnergyClock({
       </div>
 
       {/* Price strip */}
-      <div className="mt-2 flex h-3 gap-px overflow-hidden rounded-sm">
+      <div className="mt-2 flex h-2.5 gap-px overflow-hidden rounded-sm">
         {prices.map((_, i) => (
           <div
             key={i}
@@ -140,7 +138,7 @@ export default function EnergyClock({
       </div>
 
       {/* Carbon strip */}
-      <div className="mt-1 flex h-3 gap-px overflow-hidden rounded-sm">
+      <div className="mt-1 flex h-2.5 gap-px overflow-hidden rounded-sm">
         {carbon.map((_, i) => (
           <div
             key={i}
@@ -152,13 +150,13 @@ export default function EnergyClock({
       </div>
 
       {/* Strip labels */}
-      <div className="mt-1 flex gap-px text-[10px] text-ink-3">
+      <div className="mt-1 flex gap-px text-[10px] text-warm/30">
         <span className="flex-1">Prijs</span>
         <span className="flex-1 text-right">CO₂</span>
       </div>
 
       {/* Hour axis */}
-      <div className="relative mt-2 h-4 text-[10px] text-ink-3">
+      <div className="relative mt-2 h-4 text-[10px] text-warm/30">
         {HOUR_LABELS.map((h) => (
           <span
             key={h}
@@ -171,12 +169,12 @@ export default function EnergyClock({
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-line pt-3 text-[11px] text-ink-2">
+      <div
+        className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 pt-3 text-[11px] text-warm/45"
+        style={{ borderTop: '1px solid rgba(242,234,216,0.08)' }}
+      >
         <span className="flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-sm"
-            style={{ backgroundColor: BAR_BEST, boxShadow: '0 0 6px rgba(245,158,11,0.6)' }}
-          />
+          <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: BAR_BEST }} />
           Beste uren
         </span>
         <span className="flex items-center gap-1.5">
@@ -184,15 +182,15 @@ export default function EnergyClock({
           Productie
         </span>
         <span className="flex items-center gap-1.5">
-          <span
-            className="inline-block h-3 w-0.5"
-            style={{ background: 'rgba(245,158,11,0.9)', boxShadow: '0 0 4px rgba(245,158,11,0.8)' }}
-          />
+          <span className="inline-block h-3 w-px" style={{ background: 'rgba(214,162,74,0.85)' }} />
           Nu
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-4 rounded-sm bg-gradient-to-r from-leaf to-pricey" />
-          goedkoop → duur / schoon → vies
+          <span
+            className="inline-block h-2.5 w-4 rounded-sm"
+            style={{ background: 'linear-gradient(to right, #6aa84f, #cf5a3e)' }}
+          />
+          goedkoop → duur
         </span>
       </div>
     </div>
