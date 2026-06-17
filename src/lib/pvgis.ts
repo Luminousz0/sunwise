@@ -1,4 +1,5 @@
 import type { HourlyValue } from '@/types/solar';
+import type { HourlyCloudCover } from '@/types/weather';
 
 const BASE = 'https://re.jrc.ec.europa.eu/api/v5_2/seriescalc';
 
@@ -70,4 +71,22 @@ export async function fetchSolarProfile(params: SolarParams): Promise<HourlyValu
     hour,
     value: counts[hour] > 0 ? sum / counts[hour] : 0,
   }));
+}
+
+/**
+ * Adjust a typical solar curve for today's measured cloud cover.
+ * At 100% cloud cover ~20% of irradiance still reaches the panels (diffuse).
+ * At 0% clouds the typical output is unchanged (PVGIS typical already reflects
+ * average NL cloudiness — this only scales relative to that baseline).
+ */
+export function adjustForClouds(
+  typical: HourlyValue[],
+  cloudCover: HourlyCloudCover[],
+): HourlyValue[] {
+  const coverByHour = new Map(cloudCover.map((c) => [c.hour, c.cloudCoverPct]));
+  return typical.map(({ hour, value }) => {
+    const pct = coverByHour.get(hour) ?? 50; // default to average if missing
+    const factor = 1 - (pct / 100) * 0.8;    // 0% clouds→1.0, 100%→0.2
+    return { hour, value: value * factor };
+  });
 }
