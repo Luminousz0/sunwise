@@ -10,7 +10,7 @@ The Netherlands ends net-metering (*salderingsregeling*) on January 1, 2027. Aft
 
 ## What it does
 
-1. **Energy clock** — a 24-hour timeline showing today's solar production (adjusted for today's clouds), grid price, and carbon intensity side-by-side.
+1. **Energy clock** — a 24-hour timeline showing today's solar production, grid price, and carbon intensity side-by-side.
 2. **Best windows** — highlights the top hours where solar is high, prices are low, and carbon is clean.
 3. **Appliance advice** — per-appliance cards with the best run window, solar coverage %, and estimated savings in €.
 4. **Saldering framing** — the UI explains what the 2027 deadline means for your specific situation.
@@ -23,8 +23,7 @@ The Netherlands ends net-metering (*salderingsregeling*) on January 1, 2027. Aft
 |-------|--------|
 | Build | Vite 5 + TypeScript (strict) |
 | UI | React 18 + Tailwind CSS 3 + Framer Motion 11 |
-| Solar profile | [PVGIS v5.2](https://re.jrc.ec.europa.eu/pvg_tools/en/) (EU JRC, free, no key) |
-| Weather | [Open-Meteo](https://open-meteo.com/) (hourly cloud cover, free, no key) |
+| Solar + weather | [Open-Meteo](https://open-meteo.com/) (hourly solar irradiance + cloud cover, free, no key) |
 | Prices | [EnergyZero](https://api.energyzero.nl) (NL day-ahead, free, no key) |
 | Carbon | Static NL diurnal profile (all real-time sources require keys) |
 | Address | [PDOK Locatieserver](https://api.pdok.nl) (NL geocoding, free, no key) |
@@ -39,7 +38,7 @@ The Netherlands ends net-metering (*salderingsregeling*) on January 1, 2027. Aft
 
 All scoring logic lives in [`src/lib/evaluate.ts`](src/lib/evaluate.ts) as pure functions — no API calls, no React, fully unit-tested.
 
-1. `computeSolarCurve` — takes PVGIS typical hourly output and adjusts each hour by today's cloud cover (`factor = 1 - cloudPct/100 × 0.8`).
+1. `computeSolarFromIrradiance` — converts Open-Meteo's hourly GHI (W/m²) to estimated panel output (Wh) for the configured system (kWp, tilt, azimuth, losses).
 2. `computeBestWindows` — normalizes solar, price, and carbon per hour; scores each with weights (solar 50%, price 30%, carbon 20%); finds top-3 non-overlapping windows via sliding window.
 3. `computeAdvice` — for each selected appliance, finds its best contiguous run window, computes solar coverage (Wh overlap with solar curve), saving in € vs grid, and a saldering-aware note.
 
@@ -58,7 +57,7 @@ npm run test      # 25 unit tests (Vitest)
 
 ## Extending to a second market
 
-All external data is behind a `MarketDataSource` interface ([`src/lib/market.ts`](src/lib/market.ts)):
+All external market data is behind a `MarketDataSource` interface ([`src/lib/market.ts`](src/lib/market.ts)):
 
 ```ts
 interface MarketDataSource {
@@ -68,7 +67,7 @@ interface MarketDataSource {
 }
 ```
 
-Adding Germany (ENTSO-E) or Belgium is one new adapter file + one line change in `useSolarDay.ts`. PVGIS and Open-Meteo are already pan-European.
+Adding Germany (ENTSO-E) or Belgium is one new adapter file + one line change in `useSolarDay.ts`. Open-Meteo is pan-European.
 
 ---
 
