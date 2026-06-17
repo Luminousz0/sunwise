@@ -1,15 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Settings, X, MapPin, ArrowRight } from 'lucide-react';
 import { useSolarDay, DEFAULT_LAT, DEFAULT_LON } from '@/hooks/useSolarDay';
 import { useHousehold, DEFAULT_APPLIANCES } from '@/hooks/useHousehold';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import EnergyClock from '@/features/clock/EnergyClock';
+import SunArc from '@/features/clock/SunArc';
+import LiveCounter from '@/features/clock/LiveCounter';
+import EnergyFlow from '@/features/clock/EnergyFlow';
 import { computeNowStatus, range, type NowTone } from '@/features/clock/nowStatus';
 import AdvicePanel from '@/features/advice/AdvicePanel';
 import SetupFlow from '@/features/setup/SetupFlow';
 import Button from '@/components/Button';
 import IconButton from '@/components/IconButton';
+
+// Lazy-load MapLibre GL (~800 kB) — only fetched after the main bundle
+const SolarMap = lazy(() => import('@/features/map/SolarMap'));
 
 function useLiveClock() {
   const [now, setNow] = useState(() => new Date());
@@ -20,6 +26,14 @@ function useLiveClock() {
   return now;
 }
 
+// Ambient body glow when in the best solar hours
+function useAmbientMode(active: boolean) {
+  useEffect(() => {
+    document.body.classList.toggle('ambient-solar', active);
+    return () => { document.body.classList.remove('ambient-solar'); };
+  }, [active]);
+}
+
 // Radial glow color that bleeds through the hero glass card
 const TONE_GLOW: Record<NowTone, string> = {
   active: 'rgba(106,168,79,0.14)',
@@ -27,7 +41,7 @@ const TONE_GLOW: Record<NowTone, string> = {
   past: 'transparent',
 };
 
-// Status badge — natural condition colors
+// Status badge colors
 const TONE_PILL: Record<NowTone, string> = {
   active: 'text-go border-go/30',
   upcoming: 'text-caution border-caution/30',
@@ -42,6 +56,7 @@ export default function App() {
 
   const now = useLiveClock();
   const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
   const dateLabel = now.toLocaleDateString('nl-NL', {
     weekday: 'long', day: 'numeric', month: 'long',
   });
@@ -60,11 +75,34 @@ export default function App() {
   const showInstall = canInstall && !installDismissed;
   const placeName = household?.address.label.split(',')[0];
 
+  const currentKW = (solar[currentHour]?.value ?? 0) / 1000;
+
+  // Body ambient glow when actively in the best solar window
+  useAmbientMode(status.tone === 'active');
+
   return (
     <main className="mx-auto flex min-h-full w-full max-w-4xl flex-col px-5 pt-safe">
 
+      {/* Ambient overlay — warm radial glow that pulses into the page when solar is active */}
+      <AnimatePresence>
+        {status.tone === 'active' && (
+          <motion.div
+            className="pointer-events-none fixed inset-0"
+            style={{
+              zIndex: 0,
+              background:
+                'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(214,162,74,0.09) 0%, transparent 62%)',
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            exit={{ opacity: 0 }}
+            transition={{ opacity: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
-      <header className="flex items-center justify-between py-5">
+      <header className="relative z-10 flex items-center justify-between py-5">
         <div className="flex items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gold/15">
             <Sun className="h-4.5 w-4.5 text-gold" strokeWidth={2} style={{ width: 18, height: 18 }} />
@@ -98,11 +136,11 @@ export default function App() {
         </div>
       </header>
 
-      {/* Body — single column on mobile, 2-column on desktop */}
-      <div className="flex flex-1 flex-col gap-3 pb-4 md:flex-row md:items-start md:gap-5">
+      {/* Body */}
+      <div className="relative z-10 flex flex-1 flex-col gap-3 pb-4 md:flex-row md:items-start md:gap-5">
 
-        {/* LEFT column: hero + clock (sticky on desktop) */}
-        <div className="flex flex-col gap-3 md:sticky md:top-5 md:w-[460px] md:shrink-0">
+        {/* LEFT column */}
+        <div className="flex flex-col gap-3 md:w-[460px] md:shrink-0">
 
           {/* First-time CTA */}
           {!household && !loading && !error && (
@@ -130,7 +168,7 @@ export default function App() {
 
           {loading && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-3">
-              <div className="h-32 w-full animate-pulse rounded-2xl bg-surface-2" />
+              <div className="h-56 w-full animate-pulse rounded-2xl bg-surface-2" />
               <div className="h-56 w-full animate-pulse rounded-2xl bg-surface-2" />
             </motion.div>
           )}
@@ -147,7 +185,7 @@ export default function App() {
 
           {!loading && !error && (
             <>
-              {/* "Now" hero */}
+              {/* ── Hero card ─────────────────────────────────────────────── */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -162,6 +200,7 @@ export default function App() {
                     WebkitBackdropFilter: 'blur(16px)',
                   }}
                 >
+                  {/* Status pill */}
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide ${TONE_PILL[status.tone]}`}
                     style={{ background: 'rgba(242,234,216,0.06)' }}
@@ -176,29 +215,44 @@ export default function App() {
                     {status.label}
                   </span>
 
+                  {/* Sun arc — shows real-time sun position */}
+                  <div className="mt-4">
+                    <SunArc lat={lat} lon={lon} now={now} />
+                  </div>
+
+                  {/* Big time range */}
                   {status.window ? (
                     <p
-                      className="mt-4 font-display font-semibold text-warm"
-                      style={{ fontSize: '3.25rem', lineHeight: 1.05, letterSpacing: '-0.02em' }}
+                      className="mt-2 font-display font-semibold text-warm"
+                      style={{ fontSize: '2.75rem', lineHeight: 1.05, letterSpacing: '-0.02em' }}
                     >
                       {range(status.window)}
                     </p>
                   ) : (
                     <p
-                      className="mt-4 font-display font-semibold text-warm/55"
-                      style={{ fontSize: '2rem', lineHeight: 1.2, letterSpacing: '-0.01em' }}
+                      className="mt-2 font-display font-semibold text-warm/55"
+                      style={{ fontSize: '1.75rem', lineHeight: 1.2, letterSpacing: '-0.01em' }}
                     >
                       {status.detail}
                     </p>
                   )}
 
                   {status.window && (
-                    <p className="mt-2.5 text-sm leading-relaxed text-warm/55">{status.detail}</p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-warm/55">{status.detail}</p>
                   )}
+
+                  {/* Live generation counters */}
+                  <div className="mt-4">
+                    <LiveCounter
+                      solar={solar}
+                      currentHour={currentHour}
+                      currentMinute={currentMinute}
+                    />
+                  </div>
                 </div>
               </motion.div>
 
-              {/* Energy clock */}
+              {/* ── Energy clock ──────────────────────────────────────────── */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -213,6 +267,39 @@ export default function App() {
                   currentHour={currentHour}
                 />
               </motion.div>
+
+              {/* ── Energy flow diagram ────────────────────────────────────── */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 240, damping: 22, delay: 0.14 }}
+                className="glass px-5 py-4"
+              >
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-widest text-warm/35">
+                  Energiestroom
+                </p>
+                <EnergyFlow currentKW={currentKW} />
+              </motion.div>
+
+              {/* ── NL Solar map (lazy) ────────────────────────────────────── */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 240, damping: 22, delay: 0.21 }}
+              >
+                <Suspense
+                  fallback={
+                    <div className="h-[210px] w-full animate-pulse rounded-2xl bg-surface-2" />
+                  }
+                >
+                  <SolarMap
+                    lat={lat}
+                    lon={lon}
+                    solar={solar}
+                    currentHour={currentHour}
+                  />
+                </Suspense>
+              </motion.div>
             </>
           )}
         </div>
@@ -226,7 +313,12 @@ export default function App() {
             </motion.div>
           )}
           {!loading && !error && advice && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.28 }}
+              className="relative z-10"
+            >
               <AdvicePanel advice={advice} />
             </motion.div>
           )}
@@ -235,7 +327,7 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <footer className="py-4 text-center text-[10px] text-warm/30 font-sans">
+      <footer className="relative z-10 py-4 text-center text-[10px] text-warm/30 font-sans">
         {household
           ? `${household.roof.kWp} kWp · ${placeName} · Open-Meteo · EnergyZero`
           : 'Open-Meteo · EnergyZero · standaard: Amsterdam'}

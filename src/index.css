@@ -45,3 +45,16 @@ body {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Warm body tint during best solar hours — background-color transitions smoothly */
+body {
+  transition: background-color 3s ease;
+}
+body.ambient-solar {
+  background-color: #1e1a0e;
+}
+
+/* MapLibre popup/control overrides to match dark theme */
+.maplibregl-ctrl-attrib {
+  display: none;
+}
