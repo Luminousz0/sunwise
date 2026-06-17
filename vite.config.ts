@@ -31,8 +31,8 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            // PVGIS typical solar profile — changes rarely, cache long
-            urlPattern: /^https:\/\/re\.jrc\.ec\.europa\.eu\/api\/.*/i,
+            // PVGIS proxy (/api/pvgis) — solar profile changes rarely, cache 30 days
+            urlPattern: /\/api\/pvgis/i,
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "pvgis",
@@ -73,6 +73,16 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
+  server: {
+    proxy: {
+      // In dev, proxy /api/pvgis → PVGIS directly (same as the edge function does in prod)
+      "/api/pvgis": {
+        target: "https://re.jrc.ec.europa.eu",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/pvgis/, "/api/v5_2/seriescalc"),
+      },
     },
   },
   test: {

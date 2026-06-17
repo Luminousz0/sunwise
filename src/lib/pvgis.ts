@@ -1,7 +1,9 @@
 import type { HourlyValue } from '@/types/solar';
 import type { HourlyCloudCover } from '@/types/weather';
 
-const BASE = 'https://re.jrc.ec.europa.eu/api/v5_2/seriescalc';
+// Relative URL routes through /api/pvgis edge function (same-origin, no CORS issue).
+// See api/pvgis.ts — PVGIS itself does not send Access-Control-Allow-Origin headers.
+const BASE = '/api/pvgis';
 
 // Our convention: 0=N, 90=E, 180=S, 270=W
 // PVGIS convention: 0=S, -90=E, 90=W
@@ -33,7 +35,7 @@ export interface SolarParams {
 /**
  * Fetch a typical daily solar profile for the current calendar month.
  * Returns HourlyValue[24] — average Wh at each CET hour across the month.
- * PVGIS 2023 data; Workbox caches it for 30 days (see vite.config.ts).
+ * PVGIS 2020 data (latest available); Workbox caches it 30 days via /api/pvgis proxy.
  */
 export async function fetchSolarProfile(params: SolarParams): Promise<HourlyValue[]> {
   const currentMonth = new Date().getMonth() + 1; // 1-12
@@ -41,8 +43,8 @@ export async function fetchSolarProfile(params: SolarParams): Promise<HourlyValu
   const url = new URL(BASE);
   url.searchParams.set('lat', String(params.lat));
   url.searchParams.set('lon', String(params.lon));
-  url.searchParams.set('startyear', '2023');
-  url.searchParams.set('endyear', '2023');
+  url.searchParams.set('startyear', '2020'); // PVGIS valid range: 2005–2020
+  url.searchParams.set('endyear', '2020');
   url.searchParams.set('pvcalculation', '1');
   url.searchParams.set('peakpower', String(params.kWp));
   url.searchParams.set('pvtechchoice', 'crystSi');
