@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeSolarCurve, computeBestWindows } from '../src/lib/evaluate';
+import { computeSolarCurve, computeBestWindows, computeAdvice } from '../src/lib/evaluate';
 import type { HourlyValue } from '../src/types/solar';
 import type { HourlyCloudCover } from '../src/types/weather';
 
@@ -165,5 +165,92 @@ describe('computeBestWindows', () => {
       expect(startHour).toBeGreaterThanOrEqual(0);
       expect(endHour).toBeLessThanOrEqual(24);
     });
+  });
+});
+
+// ── computeAdvice tests ───────────────────────────────────────────────────────
+
+const BEFORE_SALDERING = new Date('2026-07-01');
+const AFTER_SALDERING = new Date('2027-03-01');
+
+describe('computeAdvice', () => {
+  it('returns one entry per known appliance id', () => {
+    const { appliances } = computeAdvice(
+      typical, flatPrices, flatCarbon,
+      ['washer', 'dryer'],
+      BEFORE_SALDERING,
+    );
+    expect(appliances).toHaveLength(2);
+    expect(appliances.map((a) => a.applianceId)).toEqual(['washer', 'dryer']);
+  });
+
+  it('silently skips unknown appliance ids', () => {
+    const { appliances } = computeAdvice(
+      typical, flatPrices, flatCarbon,
+      ['washer', 'nonexistent'],
+      BEFORE_SALDERING,
+    );
+    expect(appliances).toHaveLength(1);
+  });
+
+  it('selfConsumptionPct is between 0 and 100', () => {
+    const { appliances } = computeAdvice(
+      typical, flatPrices, flatCarbon,
+      ['washer', 'ev', 'heatpump'],
+      BEFORE_SALDERING,
+    );
+    appliances.forEach(({ selfConsumptionPct }) => {
+      expect(selfConsumptionPct).toBeGreaterThanOrEqual(0);
+      expect(selfConsumptionPct).toBeLessThanOrEqual(100);
+    });
+  });
+
+  it('savingEur is non-negative', () => {
+    const { appliances } = computeAdvice(
+      typical, flatPrices, flatCarbon,
+      ['washer', 'dryer', 'dishwasher'],
+      AFTER_SALDERING,
+    );
+    appliances.forEach(({ savingEur }) => expect(savingEur).toBeGreaterThanOrEqual(0));
+  });
+
+  it('topHours contains exactly 3 values in ascending order', () => {
+    const { topHours } = computeAdvice(
+      typical, flatPrices, flatCarbon, ['washer'], BEFORE_SALDERING,
+    );
+    expect(topHours).toHaveLength(3);
+    for (let i = 1; i < topHours.length; i++) {
+      expect(topHours[i]).toBeGreaterThanOrEqual(topHours[i - 1]);
+    }
+  });
+
+  it('salderingPhase is active before 2027', () => {
+    const { salderingPhase } = computeAdvice(
+      typical, flatPrices, flatCarbon, ['washer'], BEFORE_SALDERING,
+    );
+    expect(salderingPhase).toBe('active');
+  });
+
+  it('salderingPhase is ended after 2027', () => {
+    const { salderingPhase } = computeAdvice(
+      typical, flatPrices, flatCarbon, ['washer'], AFTER_SALDERING,
+    );
+    expect(salderingPhase).toBe('ended');
+  });
+
+  it('post-saldering savingEur is less than pre-saldering for the same data', () => {
+    const before = computeAdvice(typical, flatPrices, flatCarbon, ['washer'], BEFORE_SALDERING);
+    const after = computeAdvice(typical, flatPrices, flatCarbon, ['washer'], AFTER_SALDERING);
+    // Post-saldering saving = retail - feed-in; pre = retail — so before >= after
+    expect(before.appliances[0].savingEur).toBeGreaterThanOrEqual(
+      after.appliances[0].savingEur,
+    );
+  });
+
+  it('empty appliance list returns empty array', () => {
+    const { appliances } = computeAdvice(
+      typical, flatPrices, flatCarbon, [], BEFORE_SALDERING,
+    );
+    expect(appliances).toHaveLength(0);
   });
 });

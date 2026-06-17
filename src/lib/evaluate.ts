@@ -1,5 +1,11 @@
 import type { HourlyValue } from '@/types/solar';
 import type { HourlyCloudCover } from '@/types/weather';
+import { APPLIANCES } from '@/data/appliances';
+import {
+  isSalderingActive,
+  GRID_RETAIL_EUR_PER_KWH,
+  FEED_IN_EUR_PER_KWH,
+} from '@/data/salderingConstants';
 
 // ── Scoring weights ───────────────────────────────────────────────────────────
 const SOLAR_WEIGHT = 0.5;  // solar availability drives self-consumption
@@ -100,6 +106,94 @@ export function computeBestWindows(
   }
 
   return { scores, windows };
+}
+
+// ── computeAdvice ─────────────────────────────────────────────────────────────
+
+export interface ApplianceAdvice {
+  applianceId: string;
+  name: string;
+  bestWindow: BestWindow;
+  /** How much of the appliance's energy draw is covered by own solar (Wh) */
+  solarCoverageWh: number;
+  /** 0–100 */
+  selfConsumptionPct: number;
+  /** Estimated saving vs. importing all energy from the grid (€) */
+  savingEur: number;
+  salderingNote: string;
+}
+
+export interface Advice {
+  salderingPhase: 'active' | 'ended';
+  /** Top 3 individual hours by composite score — for clock highlights */
+  topHours: number[];
+  appliances: ApplianceAdvice[];
+}
+
+/**
+ * Turn scored data into human-readable appliance advice with saldering framing.
+ * Pure function — accepts a `referenceDate` so tests can control the date.
+ */
+export function computeAdvice(
+  solar: HourlyValue[],
+  prices: HourlyValue[],
+  carbon: HourlyValue[],
+  applianceIds: string[],
+  referenceDate: Date = new Date(),
+): Advice {
+  const salderingActive = isSalderingActive(referenceDate);
+  const salderingPhase: Advice['salderingPhase'] = salderingActive ? 'active' : 'ended';
+
+  // Top 3 hours by score across all appliances (use a 1-hour window as the base)
+  const { scores } = computeBestWindows(solar, prices, carbon, 1);
+  const topHours = [...scores]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((s) => s.hour)
+    .sort((a, b) => a - b);
+
+  const appliances: ApplianceAdvice[] = applianceIds
+    .map((id) => APPLIANCES[id])
+    .filter(Boolean)
+    .map((appliance) => {
+      const { windows } = computeBestWindows(
+        solar,
+        prices,
+        carbon,
+        appliance.durationHours,
+      );
+
+      const bestWindow = windows[0];
+      if (!bestWindow) return null;
+
+      const applianceWh = appliance.kWh * 1000;
+      const solarCoverageWh = Math.min(bestWindow.totalSolarWh, applianceWh);
+      const selfConsumptionPct = (solarCoverageWh / applianceWh) * 100;
+
+      // Saving = energy covered by own solar × what you'd otherwise pay to import.
+      // Post-saldering we also add the opportunity cost of exporting at the low
+      // feed-in tariff instead of self-consuming.
+      const savingEur = salderingActive
+        ? (solarCoverageWh / 1000) * GRID_RETAIL_EUR_PER_KWH
+        : (solarCoverageWh / 1000) * (GRID_RETAIL_EUR_PER_KWH - FEED_IN_EUR_PER_KWH);
+
+      const salderingNote = salderingActive
+        ? `Saldering geldt nog t/m 31-12-2026 — exporteren telt nog mee. Zelf gebruiken is zekerheid.`
+        : `Saldering afgelopen — exporteren levert slechts €${FEED_IN_EUR_PER_KWH.toFixed(2)}/kWh. Zelf gebruiken bespaart €${GRID_RETAIL_EUR_PER_KWH.toFixed(2)}/kWh.`;
+
+      return {
+        applianceId: appliance.id,
+        name: appliance.name,
+        bestWindow,
+        solarCoverageWh,
+        selfConsumptionPct,
+        savingEur,
+        salderingNote,
+      } satisfies ApplianceAdvice;
+    })
+    .filter((a): a is ApplianceAdvice => a !== null);
+
+  return { salderingPhase, topHours, appliances };
 }
 
 export interface SolarCurve {
