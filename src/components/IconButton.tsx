@@ -16,7 +16,7 @@ export default function IconButton({
       type="button"
       aria-label={label}
       title={label}
-      className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-warm/35 transition-colors hover:bg-surface-2 hover:text-warm/70 active:bg-line ${className}`}
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-white/40 transition-colors hover:bg-white/10 hover:text-white/75 active:bg-white/15 ${className}`}
       {...rest}
     >
       {children}

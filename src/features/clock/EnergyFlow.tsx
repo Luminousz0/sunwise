@@ -22,8 +22,8 @@ interface NodeProps {
 }
 
 function Node({ cx, cy, lit, children }: NodeProps) {
-  const bg = lit ? 'rgba(214,162,74,0.12)' : 'rgba(242,234,216,0.04)';
-  const stroke = lit ? 'rgba(214,162,74,0.45)' : 'rgba(242,234,216,0.12)';
+  const bg = lit ? 'rgba(16,185,129,0.14)' : 'rgba(255,255,255,0.06)';
+  const stroke = lit ? 'rgba(16,185,129,0.50)' : 'rgba(255,255,255,0.14)';
   return (
     <g transform={`translate(${cx} ${cy})`}>
       <circle r={22} fill={bg} stroke={stroke} strokeWidth={1.5} />
@@ -55,13 +55,13 @@ export default function EnergyFlow({ currentKW }: Props) {
         {/* Connector lines */}
         <path
           d={P1}
-          stroke={producing ? 'rgba(214,162,74,0.18)' : 'rgba(242,234,216,0.06)'}
+          stroke={producing ? 'rgba(16,185,129,0.22)' : 'rgba(255,255,255,0.08)'}
           strokeWidth={2}
           fill="none"
         />
         <path
           d={P2}
-          stroke={exporting ? 'rgba(214,162,74,0.12)' : 'rgba(242,234,216,0.05)'}
+          stroke={exporting ? 'rgba(16,185,129,0.16)' : 'rgba(255,255,255,0.06)'}
           strokeWidth={2}
           fill="none"
         />
@@ -69,7 +69,7 @@ export default function EnergyFlow({ currentKW }: Props) {
         {/* Particles: solar → home */}
         {producing &&
           ([0, -0.33, -0.66] as const).map((off, i) => (
-            <circle key={i} r={3.5} fill="#d6a24a">
+            <circle key={i} r={3.5} fill="#10B981">
               <animateMotion
                 dur={`${dur1}s`}
                 repeatCount="indefinite"
@@ -83,7 +83,7 @@ export default function EnergyFlow({ currentKW }: Props) {
         {/* Particles: home → grid (export / excess) */}
         {exporting &&
           ([0, -0.5] as const).map((off, i) => (
-            <circle key={i} r={2.5} fill="#b8862a" opacity={0.7}>
+            <circle key={i} r={2.5} fill="#059669" opacity={0.7}>
               <animateMotion
                 dur={`${dur2}s`}
                 repeatCount="indefinite"
@@ -101,13 +101,13 @@ export default function EnergyFlow({ currentKW }: Props) {
             <line
               key={deg}
               x1={0} y1={11.5} x2={0} y2={15}
-              stroke={producing ? '#d6a24a' : 'rgba(242,234,216,0.22)'}
+              stroke={producing ? '#10B981' : 'rgba(255,255,255,0.25)'}
               strokeWidth={1.5}
               strokeLinecap="round"
               transform={`rotate(${deg})`}
             />
           ))}
-          <circle r={8} fill={producing ? '#d6a24a' : 'rgba(242,234,216,0.18)'} />
+          <circle r={8} fill={producing ? '#10B981' : 'rgba(255,255,255,0.20)'} />
         </Node>
 
         {/* Home node */}
@@ -116,7 +116,7 @@ export default function EnergyFlow({ currentKW }: Props) {
           <polygon
             points="-9,-7 0,-15 9,-7"
             fill="none"
-            stroke="rgba(242,234,216,0.60)"
+            stroke="rgba(255,255,255,0.70)"
             strokeWidth={1.5}
             strokeLinejoin="round"
           />
@@ -124,11 +124,11 @@ export default function EnergyFlow({ currentKW }: Props) {
           <rect
             x={-8} y={-7} width={16} height={12} rx={1}
             fill="none"
-            stroke="rgba(242,234,216,0.60)"
+            stroke="rgba(255,255,255,0.70)"
             strokeWidth={1.5}
           />
           {/* Door */}
-          <rect x={-3} y={0} width={6} height={5} rx={0.5} fill="rgba(242,234,216,0.22)" />
+          <rect x={-3} y={0} width={6} height={5} rx={0.5} fill="rgba(255,255,255,0.22)" />
         </Node>
 
         {/* Grid node */}
@@ -136,18 +136,18 @@ export default function EnergyFlow({ currentKW }: Props) {
           {/* Zap icon */}
           <polygon
             points="3,-11 -3,1 3,1 -3,11 4,-1 -2,-1"
-            fill={exporting ? 'rgba(214,162,74,0.55)' : 'rgba(242,234,216,0.22)'}
+            fill={exporting ? '#10B981' : 'rgba(255,255,255,0.22)'}
           />
         </Node>
 
         {/* Node labels */}
-        <text x={55} y={70} textAnchor="middle" fontSize={9} fill="rgba(242,234,216,0.32)">
+        <text x={55} y={70} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.45)">
           Panelen
         </text>
-        <text x={170} y={70} textAnchor="middle" fontSize={9} fill="rgba(242,234,216,0.32)">
+        <text x={170} y={70} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.45)">
           Woning
         </text>
-        <text x={285} y={70} textAnchor="middle" fontSize={9} fill="rgba(242,234,216,0.32)">
+        <text x={285} y={70} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.45)">
           Net
         </text>
 
@@ -158,7 +158,7 @@ export default function EnergyFlow({ currentKW }: Props) {
             textAnchor="middle"
             fontSize={10}
             fontWeight="600"
-            fill="#d6a24a"
+            fill="#10B981"
           >
             {currentKW.toFixed(2)} kW
           </text>

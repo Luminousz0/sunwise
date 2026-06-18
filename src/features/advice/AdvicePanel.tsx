@@ -24,17 +24,17 @@ function TopHoursCard({ topHours }: { topHours: number[] }) {
             style={
               i === 0
                 ? {
-                    background: 'rgba(214,162,74,0.12)',
-                    border: '1px solid rgba(214,162,74,0.25)',
+                    background: 'rgba(16,185,129,0.14)',
+                    border: '1px solid rgba(16,185,129,0.30)',
                   }
                 : {
-                    background: 'rgba(242,234,216,0.04)',
-                    border: '1px solid rgba(242,234,216,0.08)',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.10)',
                   }
             }
           >
             <p
-              className={`font-display text-xl font-semibold ${i === 0 ? 'text-gold' : 'text-warm/70'}`}
+              className={`text-xl font-semibold ${i === 0 ? 'text-gold' : 'text-warm/70'}`}
             >
               {fmt(h)}
             </p>
@@ -64,7 +64,7 @@ function ApplianceCard({ a }: { a: ApplianceAdvice }) {
         <div className="flex items-center gap-2.5">
           <span
             className="flex h-9 w-9 items-center justify-center rounded-lg text-gold"
-            style={{ background: 'rgba(214,162,74,0.12)' }}
+            style={{ background: 'rgba(16,185,129,0.14)' }}
           >
             <ApplianceIcon id={a.applianceId} className="h-5 w-5" />
           </span>
@@ -84,7 +84,7 @@ function ApplianceCard({ a }: { a: ApplianceAdvice }) {
       </div>
       <div
         className="mb-3 h-1.5 w-full overflow-hidden rounded-full"
-        style={{ background: 'rgba(242,234,216,0.08)' }}
+        style={{ background: 'rgba(255,255,255,0.10)' }}
       >
         <motion.div
           className="h-full rounded-full bg-gold"
@@ -113,7 +113,7 @@ function SalderingBanner({ phase }: { phase: Advice['salderingPhase'] }) {
       className="p-4"
       style={
         !active
-          ? { borderColor: 'rgba(214,162,74,0.20)', background: 'rgba(214,162,74,0.06)' }
+          ? { borderColor: 'rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.08)' }
           : undefined
       }
     >

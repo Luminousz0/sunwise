@@ -70,15 +70,15 @@ export default function SunArc({ lat, lon, now }: Props) {
       >
         <defs>
           <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#ffd86b" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#d6a24a" stopOpacity="0" />
+            <stop offset="0%" stopColor="#86efac" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
           </radialGradient>
         </defs>
 
         {/* Horizon line */}
         <line
           x1={10} y1={cy} x2={W - 10} y2={cy}
-          stroke="rgba(242,234,216,0.10)"
+          stroke="rgba(255,255,255,0.14)"
           strokeWidth={1}
         />
 
@@ -86,7 +86,7 @@ export default function SunArc({ lat, lon, now }: Props) {
         <path
           d={FULL_D}
           fill="none"
-          stroke="rgba(214,162,74,0.20)"
+          stroke="rgba(16,185,129,0.28)"
           strokeWidth={1.5}
           strokeDasharray="3 3"
         />
@@ -96,7 +96,7 @@ export default function SunArc({ lat, lon, now }: Props) {
           <path
             d={traveledD}
             fill="none"
-            stroke="#d6a24a"
+            stroke="#10B981"
             strokeWidth={2}
             strokeLinecap="round"
           />
@@ -113,7 +113,7 @@ export default function SunArc({ lat, lon, now }: Props) {
             cx={dot.x}
             cy={dot.y}
             r={6.5}
-            fill="#d6a24a"
+            fill="#10B981"
             animate={{ r: [6.5, 8.5, 6.5] }}
             transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
           />
@@ -124,7 +124,7 @@ export default function SunArc({ lat, lon, now }: Props) {
           x={10} y={cy + 13}
           textAnchor="start"
           fontSize={8}
-          fill="rgba(242,234,216,0.28)"
+          fill="rgba(255,255,255,0.40)"
         >
           {fmt(sunrise)}
         </text>
@@ -132,7 +132,7 @@ export default function SunArc({ lat, lon, now }: Props) {
           x={W - 10} y={cy + 13}
           textAnchor="end"
           fontSize={8}
-          fill="rgba(242,234,216,0.28)"
+          fill="rgba(255,255,255,0.40)"
         >
           {fmt(sunset)}
         </text>
@@ -141,7 +141,7 @@ export default function SunArc({ lat, lon, now }: Props) {
       {/* Sun altitude badge — only when above horizon */}
       {isAboveHorizon && (
         <div className="absolute right-1 top-0 text-right leading-none">
-          <p className="text-[9px] text-warm/28">zonhoogte</p>
+          <p className="text-[9px] text-white/40">zonhoogte</p>
           <p className="text-xs font-semibold text-gold">{altDeg}°</p>
         </div>
       )}

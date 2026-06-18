@@ -70,11 +70,11 @@ export function AddressInput({ value, onChange }: Props) {
         placeholder="Typ je adres..."
         className="w-full rounded-xl px-4 py-3 text-sm text-warm outline-none transition-colors placeholder:text-warm/30"
         style={{
-          background: 'rgba(242,234,216,0.07)',
-          border: '1px solid rgba(242,234,216,0.12)',
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.14)',
         }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(214,162,74,0.5)')}
-        onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(242,234,216,0.12)')}
+        onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(16,185,129,0.55)')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)')}
         autoComplete="off"
         aria-label="Adres"
         aria-expanded={open}
@@ -90,8 +90,8 @@ export function AddressInput({ value, onChange }: Props) {
           role="listbox"
           className="absolute z-50 mt-1 w-full rounded-xl py-1"
           style={{
-            background: '#211b12',
-            border: '1px solid rgba(242,234,216,0.10)',
+            background: '#042318',
+            border: '1px solid rgba(255,255,255,0.14)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           }}
         >

@@ -36,8 +36,8 @@ function useAmbientMode(active: boolean) {
 
 // Radial glow color that bleeds through the hero glass card
 const TONE_GLOW: Record<NowTone, string> = {
-  active: 'rgba(106,168,79,0.14)',
-  upcoming: 'rgba(226,144,43,0.16)',
+  active: 'rgba(16,185,129,0.18)',
+  upcoming: 'rgba(251,191,36,0.16)',
   past: 'transparent',
 };
 
@@ -91,7 +91,7 @@ export default function App() {
             style={{
               zIndex: 0,
               background:
-                'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(214,162,74,0.09) 0%, transparent 62%)',
+                'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(16,185,129,0.12) 0%, transparent 62%)',
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.6, 1, 0.6] }}
@@ -120,7 +120,7 @@ export default function App() {
             type="button"
             onClick={() => setSetupOpen(true)}
             className="inline-flex min-h-[36px] max-w-[9rem] items-center gap-1.5 rounded-full px-3 text-xs font-medium text-warm/60 transition-colors hover:text-warm"
-            style={{ background: 'rgba(242,234,216,0.06)', border: '1px solid rgba(242,234,216,0.10)' }}
+            style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.16)' }}
           >
             <MapPin className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={2} />
             <span className="truncate">{placeName ?? 'Stel woning in'}</span>
@@ -148,8 +148,8 @@ export default function App() {
               <div
                 className="flex items-center gap-3 rounded-2xl p-4"
                 style={{
-                  background: 'rgba(214,162,74,0.08)',
-                  border: '1px solid rgba(214,162,74,0.18)',
+                  background: 'rgba(16,185,129,0.10)',
+                  border: '1px solid rgba(16,185,129,0.22)',
                 }}
               >
                 <div className="flex-1">
@@ -176,7 +176,7 @@ export default function App() {
           {error && (
             <div
               className="rounded-2xl p-4"
-              style={{ background: 'rgba(207,90,62,0.10)', border: '1px solid rgba(207,90,62,0.20)' }}
+              style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.22)' }}
             >
               <p className="text-sm font-semibold text-stop">Kon gegevens niet laden</p>
               <p className="mt-1 text-xs text-warm/55">Probeer het later opnieuw. {error}</p>
@@ -194,16 +194,16 @@ export default function App() {
                 <div
                   className="relative overflow-hidden rounded-3xl p-6"
                   style={{
-                    background: `radial-gradient(ellipse 120% 80% at 50% 140%, ${TONE_GLOW[status.tone]} 0%, transparent 60%), rgba(242,234,216,0.045)`,
-                    border: '1px solid rgba(242,234,216,0.09)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
+                    background: `radial-gradient(ellipse 120% 80% at 50% 140%, ${TONE_GLOW[status.tone]} 0%, transparent 60%), rgba(255,255,255,0.12)`,
+                    border: '0.5px solid rgba(255,255,255,0.18)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
                   }}
                 >
                   {/* Status pill */}
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide ${TONE_PILL[status.tone]}`}
-                    style={{ background: 'rgba(242,234,216,0.06)' }}
+                    style={{ background: 'rgba(255,255,255,0.10)' }}
                   >
                     {status.tone === 'active' && (
                       <motion.span
@@ -342,7 +342,7 @@ export default function App() {
             exit={{ opacity: 0, y: 24 }}
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
             className="fixed bottom-6 left-4 right-4 z-40 mx-auto flex max-w-lg items-center gap-3 rounded-2xl px-4 py-3 shadow-sheet backdrop-blur-glass"
-            style={{ background: 'rgba(35,29,20,0.92)', border: '1px solid rgba(242,234,216,0.10)' }}
+            style={{ background: 'rgba(4,35,24,0.95)', border: '1px solid rgba(255,255,255,0.14)' }}
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold/15">
               <Sun className="h-5 w-5 text-gold" strokeWidth={2} />

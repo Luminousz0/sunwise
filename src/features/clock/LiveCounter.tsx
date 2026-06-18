@@ -45,7 +45,7 @@ export default function LiveCounter({ solar, currentHour, currentMinute }: Props
   const euroSaved = todayKWh * GRID_RETAIL_EUR_PER_KWH;
 
   return (
-    <div className="flex items-center gap-4 pt-3" style={{ borderTop: '1px solid rgba(242,234,216,0.08)' }}>
+    <div className="flex items-center gap-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}>
       <Stat
         label="Nu"
         value={

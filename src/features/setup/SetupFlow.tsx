@@ -55,7 +55,7 @@ function StepRoof({ roof, onChange }: { roof: RoofConfig; onChange: (r: RoofConf
               }`}
               style={
                 roof.azimuth !== az
-                  ? { background: 'rgba(242,234,216,0.06)', border: '1px solid rgba(242,234,216,0.08)' }
+                  ? { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }
                   : undefined
               }
             >
@@ -123,8 +123,8 @@ function StepAppliances({ selected, onChange }: { selected: string[]; onChange: 
               className="flex items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-colors"
               style={
                 on
-                  ? { background: 'rgba(214,162,74,0.12)', border: '1px solid rgba(214,162,74,0.25)' }
-                  : { background: 'rgba(242,234,216,0.04)', border: '1px solid rgba(242,234,216,0.08)' }
+                  ? { background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.30)' }
+                  : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }
               }
             >
               <span className={on ? 'text-gold' : 'text-warm/35'}>
@@ -163,7 +163,7 @@ export default function SetupFlow({ initial, onSave, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col justify-end backdrop-blur-md"
-      style={{ background: 'rgba(14,11,6,0.75)' }}
+      style={{ background: 'rgba(0,20,10,0.80)' }}
       onClick={onClose}
     >
       <motion.div
@@ -173,15 +173,15 @@ export default function SetupFlow({ initial, onSave, onClose }: Props) {
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className="mx-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl px-5 pt-4 pb-safe shadow-sheet"
         style={{
-          background: '#1e1810',
-          borderTop: '1px solid rgba(242,234,216,0.10)',
+          background: '#042318',
+          borderTop: '1px solid rgba(255,255,255,0.14)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle */}
         <div
           className="mx-auto mb-5 h-1 w-10 rounded-full"
-          style={{ background: 'rgba(242,234,216,0.15)' }}
+          style={{ background: 'rgba(255,255,255,0.18)' }}
         />
 
         {/* Step indicator */}
@@ -192,7 +192,7 @@ export default function SetupFlow({ initial, onSave, onClose }: Props) {
                 className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
                   i <= step ? 'bg-gold text-stone-900' : 'text-warm/30'
                 }`}
-                style={i > step ? { background: 'rgba(242,234,216,0.08)' } : undefined}
+                style={i > step ? { background: 'rgba(255,255,255,0.10)' } : undefined}
               >
                 {i + 1}
               </div>

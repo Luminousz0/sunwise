@@ -11,8 +11,8 @@ const VARIANTS: Record<Variant, string> = {
   primary:
     'bg-gold text-stone-900 font-semibold hover:bg-gold-soft active:scale-95 disabled:opacity-40',
   secondary:
-    'border border-line-2 text-warm/60 font-medium hover:bg-surface-2 hover:text-warm active:bg-line',
-  ghost: 'text-warm/60 font-medium hover:bg-surface-2 hover:text-warm active:bg-line',
+    'border border-white/20 text-white/60 font-medium hover:bg-white/10 hover:text-white active:bg-white/15',
+  ghost: 'text-white/60 font-medium hover:bg-white/10 hover:text-white active:bg-white/15',
 };
 
 export default function Button({

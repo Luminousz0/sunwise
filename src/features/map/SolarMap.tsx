@@ -71,7 +71,7 @@ export default function SolarMap({ lat, lon, solar, currentHour }: Props) {
         source: 'loc',
         paint: {
           'circle-radius': glowRadius,
-          'circle-color': '#d6a24a',
+          'circle-color': '#10B981',
           'circle-opacity': 0.08 + intensity * 0.10,
           'circle-blur': 1,
         },
@@ -84,10 +84,10 @@ export default function SolarMap({ lat, lon, solar, currentHour }: Props) {
         source: 'loc',
         paint: {
           'circle-radius': 12,
-          'circle-color': '#d6a24a',
+          'circle-color': '#10B981',
           'circle-opacity': 0.85,
           'circle-stroke-width': 2.5,
-          'circle-stroke-color': '#ffd86b',
+          'circle-stroke-color': '#86efac',
           'circle-stroke-opacity': 0.7,
         },
       });
@@ -113,7 +113,7 @@ export default function SolarMap({ lat, lon, solar, currentHour }: Props) {
   return (
     <div
       className="relative overflow-hidden rounded-2xl"
-      style={{ height: 210, border: '1px solid rgba(242,234,216,0.08)' }}
+      style={{ height: 210, border: '1px solid rgba(255,255,255,0.10)' }}
     >
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
 
@@ -121,7 +121,7 @@ export default function SolarMap({ lat, lon, solar, currentHour }: Props) {
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-16"
         style={{
-          background: 'linear-gradient(to bottom, transparent, rgba(26,22,16,0.7))',
+          background: 'linear-gradient(to bottom, transparent, rgba(6,58,42,0.7))',
         }}
       />
 
@@ -129,7 +129,7 @@ export default function SolarMap({ lat, lon, solar, currentHour }: Props) {
       <div className="absolute bottom-2.5 right-3">
         <span
           className="rounded-full px-2 py-0.5 text-[9px] text-warm/40"
-          style={{ background: 'rgba(26,22,16,0.6)', border: '1px solid rgba(242,234,216,0.07)' }}
+          style={{ background: 'rgba(6,58,42,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}
         >
           Jouw locatie · © OSM · CARTO
         </span>
